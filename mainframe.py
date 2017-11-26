@@ -429,7 +429,7 @@ class Downloader(threading.Thread):
         with self._lock:
             frame.RemoveFinishedItem(self.item)
 
-    def stop(self): # when the user clicked skip / stop button, current download should cancel
+    def stop(self): # when the user clicked skip / stop button, current download should be canceled
         if self.stream:
             self.stream.cancel()
 
