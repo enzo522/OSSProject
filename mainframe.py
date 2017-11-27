@@ -27,31 +27,31 @@ class MainFrame(wx.Frame):
             hBoxes.append(wx.BoxSizer(wx.HORIZONTAL))
 
         sourceLabel = wx.StaticText(panel, label="URLs:")
-        self.addButton = wx.BitmapButton(panel, -1, wx.Bitmap("images/addButtonIcon.png"), style=wx.NO_BORDER)
-        self.Bind(wx.EVT_BUTTON, self.OnClickAddButton, self.addButton)
+        self.__addButton = wx.BitmapButton(panel, -1, wx.Bitmap("images/addButtonIcon.png"), style=wx.NO_BORDER)
+        self.Bind(wx.EVT_BUTTON, self.OnClickAddButton, self.__addButton)
 
         # labelGridSizer includes attributes that place on the top
         labelGridSizer = wx.GridSizer(cols=3)
         labelGridSizer.Add(sourceLabel, 0, wx.ALIGN_LEFT)
         labelGridSizer.Add(wx.StaticText(panel, size=(wx.GetDisplaySize().Width, -1)), 0, wx.EXPAND)
-        labelGridSizer.Add(self.addButton, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        labelGridSizer.Add(self.__addButton, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         hBoxes[0].Add(labelGridSizer, flag=wx.EXPAND)
         vBox.Add(hBoxes[0], flag=wx.ALL, border=10)
 
         # text field to input urls
-        self.sourceText = wx.TextCtrl(panel, size=(-1, wx.GetDisplaySize().Height), style=wx.TE_MULTILINE)
-        hBoxes[1].Add(self.sourceText, proportion=1)
+        self.__sourceText = wx.TextCtrl(panel, size=(-1, wx.GetDisplaySize().Height), style=wx.TE_MULTILINE)
+        hBoxes[1].Add(self.__sourceText, proportion=1)
         vBox.Add(hBoxes[1], proportion=1, flag=wx.EXPAND | wx.LEFT | wx.RIGHT | wx.BOTTOM, border=10)
 
         # a button to change download directory
         dirBox = wx.BoxSizer(wx.HORIZONTAL)
-        self.changeDirButton = wx.BitmapButton(panel, -1, wx.Bitmap("images/changeDirButtonIcon.png"), style=wx.NO_BORDER)
-        self.Bind(wx.EVT_BUTTON, self.OnClickChangeDirButton, self.changeDirButton)
-        dirBox.Add(self.changeDirButton, flag=wx.ALIGN_CENTER_VERTICAL | wx.RIGHT, border=8)
+        self.__changeDirButton = wx.BitmapButton(panel, -1, wx.Bitmap("images/changeDirButtonIcon.png"), style=wx.NO_BORDER)
+        self.Bind(wx.EVT_BUTTON, self.OnClickChangeDirButton, self.__changeDirButton)
+        dirBox.Add(self.__changeDirButton, flag=wx.ALIGN_CENTER_VERTICAL | wx.RIGHT, border=8)
 
         # this text shows currently selected download directory
-        self.dirText = wx.TextCtrl(panel, value="/Users/KimSungsoo/Downloads/", size=(300, -1), style=wx.TE_READONLY)
-        dirBox.Add(self.dirText)
+        self.__dirText = wx.TextCtrl(panel, value="/Users/KimSungsoo/Downloads/", size=(300, -1), style=wx.TE_READONLY)
+        dirBox.Add(self.__dirText)
 
         # a meaningless icon
         optBox = wx.BoxSizer(wx.HORIZONTAL)
@@ -59,10 +59,10 @@ class MainFrame(wx.Frame):
         optBox.Add(prefIcon, flag=wx.ALIGN_CENTER_VERTICAL | wx.RIGHT, border=8)
 
         # a combobox which includes all available stream options that are available on selected video
-        self.prefCombobox = wx.ComboBox(panel, size=(200, -1), style=wx.CB_DROPDOWN | wx.TE_READONLY)
-        self.Bind(wx.EVT_COMBOBOX_DROPDOWN, self.OnDropDownRefreshItems, self.prefCombobox)
-        self.Bind(wx.EVT_COMBOBOX, self.OnSelectType, self.prefCombobox)
-        optBox.Add(self.prefCombobox)
+        self.__prefCombobox = wx.ComboBox(panel, size=(200, -1), style=wx.CB_DROPDOWN | wx.TE_READONLY)
+        self.Bind(wx.EVT_COMBOBOX_DROPDOWN, self.OnDropDownRefreshItems, self.__prefCombobox)
+        self.Bind(wx.EVT_COMBOBOX, self.OnSelectType, self.__prefCombobox)
+        optBox.Add(self.__prefCombobox)
 
         # optionGridSizer includes attributes which place on the center
         optionGridSizer = wx.GridSizer(cols=3)
@@ -73,37 +73,37 @@ class MainFrame(wx.Frame):
         vBox.Add(hBoxes[2], flag=wx.LEFT | wx.RIGHT | wx.BOTTOM, border=10)
 
         # a tabled list which includes download list
-        self.addedList = wx.ListCtrl(panel, style=wx.LC_REPORT | wx.BORDER_DOUBLE)
+        self.__addedList = wx.ListCtrl(panel, style=wx.LC_REPORT | wx.BORDER_DOUBLE)
         cols = [ "제목", "저자", "길이", "옵션", "크기", "속도", "진행률", "남은 시간", "" ] # an empty column not to spoil UI when resizing
         columnWidths = [ 230, 80, 70, 180, 70, 85, 60, 70, wx.GetDisplaySize().Width ]
 
         for i in range(len(cols)):
-            self.addedList.InsertColumn(i, cols[i], wx.TEXT_ALIGNMENT_CENTER)
-            self.addedList.SetColumnWidth(i, columnWidths[i])
+            self.__addedList.InsertColumn(i, cols[i], wx.TEXT_ALIGNMENT_CENTER)
+            self.__addedList.SetColumnWidth(i, columnWidths[i])
 
-        hBoxes[3].Add(self.addedList, flag=wx.EXPAND | wx.LEFT | wx.RIGHT)
+        hBoxes[3].Add(self.__addedList, flag=wx.EXPAND | wx.LEFT | wx.RIGHT)
         vBox.Add(hBoxes[3], flag=wx.LEFT | wx.RIGHT, border=10)
         vBox.Add((-1, 10))
 
-        self.startButton = wx.BitmapButton(panel, -1, wx.Bitmap("images/startButtonIcon.png"), style=wx.NO_BORDER)
-        self.Bind(wx.EVT_BUTTON, self.OnClickStartButton, self.startButton)
-        hBoxes[4].Add(self.startButton, flag=wx.RIGHT, border=12)
+        self.__startButton = wx.BitmapButton(panel, -1, wx.Bitmap("images/startButtonIcon.png"), style=wx.NO_BORDER)
+        self.Bind(wx.EVT_BUTTON, self.OnClickStartButton, self.__startButton)
+        hBoxes[4].Add(self.__startButton, flag=wx.RIGHT, border=12)
 
-        self.skipButton = wx.BitmapButton(panel, -1, wx.Bitmap("images/skipButtonIcon.png"), style=wx.NO_BORDER)
-        self.Bind(wx.EVT_BUTTON, self.OnClickSkipButton, self.skipButton)
-        hBoxes[4].Add(self.skipButton, flag=wx.RIGHT, border=12)
+        self.__skipButton = wx.BitmapButton(panel, -1, wx.Bitmap("images/skipButtonIcon.png"), style=wx.NO_BORDER)
+        self.Bind(wx.EVT_BUTTON, self.OnClickSkipButton, self.__skipButton)
+        hBoxes[4].Add(self.__skipButton, flag=wx.RIGHT, border=12)
 
-        self.stopButton = wx.BitmapButton(panel, -1, wx.Bitmap("images/stopButtonIcon.png"), style=wx.NO_BORDER)
-        self.Bind(wx.EVT_BUTTON, self.OnClickStopButton, self.stopButton)
-        hBoxes[4].Add(self.stopButton, flag=wx.RIGHT, border=12)
+        self.__stopButton = wx.BitmapButton(panel, -1, wx.Bitmap("images/stopButtonIcon.png"), style=wx.NO_BORDER)
+        self.Bind(wx.EVT_BUTTON, self.OnClickStopButton, self.__stopButton)
+        hBoxes[4].Add(self.__stopButton, flag=wx.RIGHT, border=12)
 
-        self.infoButton = wx.BitmapButton(panel, -1, wx.Bitmap("images/infoButtonIcon.png"), style=wx.NO_BORDER)
-        self.Bind(wx.EVT_BUTTON, self.OnClickInfoButton, self.infoButton)
-        hBoxes[4].Add(self.infoButton, flag=wx.RIGHT, border=12)
+        self.__infoButton = wx.BitmapButton(panel, -1, wx.Bitmap("images/infoButtonIcon.png"), style=wx.NO_BORDER)
+        self.Bind(wx.EVT_BUTTON, self.OnClickInfoButton, self.__infoButton)
+        hBoxes[4].Add(self.__infoButton, flag=wx.RIGHT, border=12)
 
-        self.removeButton = wx.BitmapButton(panel, -1, wx.Bitmap("images/removeButtonIcon.png"), style=wx.NO_BORDER)
-        self.Bind(wx.EVT_BUTTON, self.OnClickRemoveButton, self.removeButton)
-        hBoxes[4].Add(self.removeButton)
+        self.__removeButton = wx.BitmapButton(panel, -1, wx.Bitmap("images/removeButtonIcon.png"), style=wx.NO_BORDER)
+        self.Bind(wx.EVT_BUTTON, self.OnClickRemoveButton, self.__removeButton)
+        hBoxes[4].Add(self.__removeButton)
 
         vBox.Add(hBoxes[4], flag=wx.ALIGN_RIGHT | wx.RIGHT, border=10)
         vBox.Add((-1, 10))
@@ -113,11 +113,11 @@ class MainFrame(wx.Frame):
         self.GetStatusBar().SetBackgroundColour("white")
         self.SetStatusText("")
 
-        self.downloadList = []
-        self.downloading = False
+        self.__downloadList = []
+        self.__downloading = False
 
-        self.am = None # AddManager for adding urls
-        self.dm = None # DownloadManager for downloading videos
+        self.__am = None # AddManager for adding urls
+        self.__dm = None # DownloadManager for downloading videos
 
         self.Bind(wx.EVT_UPDATE_UI, self.UIUpdater)
         self.Center()
@@ -125,140 +125,140 @@ class MainFrame(wx.Frame):
 
         # stop all downloads before force close
     def onClose(self, event):
-        if self.am and self.am.isAlive():
-            self.am.stop()
-            self.am.join()
+        if self.__am and self.__am.isAlive():
+            self.__am.stop()
+            self.__am.join()
 
-        if self.dm and self.dm.isAlive():
-            self.dm.stop()
-            self.dm.join()
+        if self.__dm and self.__dm.isAlive():
+            self.__dm.stop()
+            self.__dm.join()
 
         self.Destroy()
 
         # UI updater to enable / disable button properly
     def UIUpdater(self, event):
-        self.addButton.Enable(not self.downloading and self.sourceText.GetValue() != "" and True if self.am is None else not self.am.isAlive())
-        self.changeDirButton.Enable(not self.downloading)
-        self.prefCombobox.Enable(not self.downloading and self.addedList.SelectedItemCount == 1)
+        self.__addButton.Enable(not self.__downloading and self.__sourceText.GetValue() != "" and True if self.__am is None else not self.__am.isAlive())
+        self.__changeDirButton.Enable(not self.__downloading)
+        self.__prefCombobox.Enable(not self.__downloading and self.__addedList.SelectedItemCount == 1)
 
-        self.startButton.Enable(not self.downloading and len(self.downloadList) > 0 and self.am is not None and not self.am.isAlive())
-        self.skipButton.Enable(self.downloading)
-        self.stopButton.Enable(self.downloading)
+        self.__startButton.Enable(not self.__downloading and len(self.__downloadList) > 0 and self.__am is not None and not self.__am.isAlive())
+        self.__skipButton.Enable(self.__downloading)
+        self.__stopButton.Enable(self.__downloading)
 
-        self.infoButton.Enable(self.addedList.SelectedItemCount == 1)
-        self.removeButton.Enable(not self.downloading and self.addedList.SelectedItemCount == 1 and self.am is not None and not self.am.isAlive())
+        self.__infoButton.Enable(self.__addedList.SelectedItemCount == 1)
+        self.__removeButton.Enable(not self.__downloading and self.__addedList.SelectedItemCount == 1 and self.__am is not None and not self.__am.isAlive())
 
         # event handler for AddButton
     def OnClickAddButton(self, event):
-        if self.sourceText.GetValue():
+        if self.__sourceText.GetValue():
             urlList = []
 
-            for i in range(self.sourceText.GetNumberOfLines()):
-                if self.sourceText.GetLineText(i) != "": # blank is useless
-                    urlList.append(self.sourceText.GetLineText(i))
+            for i in range(self.__sourceText.GetNumberOfLines()):
+                if self.__sourceText.GetLineText(i) != "": # blank is useless
+                    urlList.append(self.__sourceText.GetLineText(i))
 
-            self.am = AddManager(urlList)
-            self.am.start()
-            self.sourceText.Clear()
+            self.__am = AddManager(urlList)
+            self.__am.start()
+            self.__sourceText.Clear()
 
         # event handler for StartButton
     def OnClickStartButton(self, event):
-        self.dm = DownloadManager(self.downloadList, self.dirText.GetValue())
-        self.dm.start()
-        self.downloading = True
+        self.__dm = DownloadManager(self.__downloadList, self.__dirText.GetValue())
+        self.__dm.start()
+        self.__downloading = True
         self.SetStatusText("Downloading...")
 
         # event handler for SkipButton
     def OnClickSkipButton(self, event):
-        if self.dm and self.dm.isAlive():
-            self.dm.skip()
+        if self.__dm and self.__dm.isAlive():
+            self.__dm.skip()
 
         # event handler for StopButton
     def OnClickStopButton(self, event):
-        if self.dm and self.dm.isAlive():
-            self.dm.stop()
+        if self.__dm and self.__dm.isAlive():
+            self.__dm.stop()
 
-        self.downloading = False
+        self.__downloading = False
 
         # event handler for InfoButton
     def OnClickInfoButton(self, event):
-        infoDialog = VideoInfoDialog(self.downloadList[self.addedList.GetFocusedItem()].video)
+        infoDialog = VideoInfoDialog(self.__downloadList[self.__addedList.GetFocusedItem()].video)
         infoDialog.Show()
 
         # event handler for RemoveButton
     def OnClickRemoveButton(self, event):
         with self._lock:
-            toRemove = self.downloadList.pop(self.addedList.GetFocusedItem())
+            toRemove = self.__downloadList.pop(self.__addedList.GetFocusedItem())
 
-        self.addedList.DeleteItem(self.addedList.GetFocusedItem())
+        self.__addedList.DeleteItem(self.__addedList.GetFocusedItem())
         self.SetStatusText(toRemove.video.title + " has been removed.")
 
         # event handler for ChangeDirButton
     def OnClickChangeDirButton(self, event):
-        dialog = wx.DirDialog(None, message="test", defaultPath=self.dirText.GetValue())
+        dialog = wx.DirDialog(None, message="test", defaultPath=self.__dirText.GetValue())
 
         if dialog.ShowModal() == wx.ID_OK:
-            self.dirText.SetValue(dialog.GetPath() + "/")
+            self.__dirText.SetValue(dialog.GetPath() + "/")
 
         dialog.Destroy()
 
         # event handler for dropdowned PrefCombobox
     def OnDropDownRefreshItems(self, event):
-        selectedItem = self.downloadList[self.addedList.GetFocusedItem()]
+        selectedItem = self.__downloadList[self.__addedList.GetFocusedItem()]
         optList = []
-        self.prefCombobox.Clear()
+        self.__prefCombobox.Clear()
 
         for s in selectedItem.video.allstreams: # get all the available options about selected video
             optList.append(s.mediatype + " / " + s.extension + " / " + s.quality)
 
-        self.prefCombobox.AppendItems(optList)
+        self.__prefCombobox.AppendItems(optList)
 
         # event handler for selecting PrefCombobox
     def OnSelectType(self, event):
-        self.downloadList[self.addedList.GetFocusedItem()].selectedExt = self.prefCombobox.GetStringSelection()
-        self.addedList.SetItem(self.addedList.GetFocusedItem(), 3, self.prefCombobox.GetStringSelection())
+        self.__downloadList[self.__addedList.GetFocusedItem()].selectedExt = self.__prefCombobox.GetStringSelection()
+        self.__addedList.SetItem(self.__addedList.GetFocusedItem(), 3, self.__prefCombobox.GetStringSelection())
 
         # add item to list
     def AddToList(self, item):
         with self._lock:
-            self.downloadList.append(item)
+            self.__downloadList.append(item)
 
-        num_items = self.addedList.GetItemCount()
-        self.addedList.InsertItem(num_items, item.video.title)
-        self.addedList.SetItem(num_items, 1, item.video.author)
-        self.addedList.SetItem(num_items, 2, item.video.duration)
-        self.addedList.SetItem(num_items, 3, item.selectedExt)
+        num_items = self.__addedList.GetItemCount()
+        self.__addedList.InsertItem(num_items, item.video.title)
+        self.__addedList.SetItem(num_items, 1, item.video.author)
+        self.__addedList.SetItem(num_items, 2, item.video.duration)
+        self.__addedList.SetItem(num_items, 3, item.selectedExt)
 
         self.SetStatusText(item.video.title + " has been added.")
 
         # update status of downloading item
     def UpdateStatus(self, tuple):
-        index = tuple[0]
+        selectedItem = self.__downloadList.index(tuple[0])
 
-        if tuple[1] > 1000000: # about file size
-            self.addedList.SetItem(self.downloadList.index(index), 4, round(tuple[1] / 1000000, 1).__str__() + "MB")
+        if tuple[1] > 1024 ** 2: # about file size
+            self.__addedList.SetItem(selectedItem, 4, round(tuple[1] / 1024 ** 2, 1).__str__() + "MB")
         else:
-            self.addedList.SetItem(self.downloadList.index(index), 4, round(tuple[1] / 1000, 1).__str__() + "KB")
+            self.__addedList.SetItem(selectedItem, 4, round(tuple[1] / 1024, 1).__str__() + "KB")
 
-        if tuple[2][1] > 1000: # about download speed
-            self.addedList.SetItem(self.downloadList.index(index), 5, round(tuple[2][1] / 1000, 1).__str__() + "MB/s")
+        if tuple[2][1] > 1024: # about download speed
+            self.__addedList.SetItem(selectedItem, 5, round(tuple[2][1] / 1024, 1).__str__() + "MB/s")
         else:
-            self.addedList.SetItem(self.downloadList.index(index), 5, round(tuple[2][1], 1).__str__() + "KB/s")
+            self.__addedList.SetItem(selectedItem, 5, round(tuple[2][1], 1).__str__() + "KB/s")
 
         # about progress rate and estimated time of arrival
-        self.addedList.SetItem(self.downloadList.index(index), 6, round(tuple[2][0] * 100, 1).__str__() + "%")
-        self.addedList.SetItem(self.downloadList.index(index), 7, round(tuple[2][2], 1).__str__() + "초")
+        self.__addedList.SetItem(selectedItem, 6, round(tuple[2][0] * 100, 1).__str__() + "%")
+        self.__addedList.SetItem(selectedItem, 7, round(tuple[2][2], 1).__str__() + "초")
 
         # remove item from list when downloaded
     def RemoveFinishedItem(self, item):
         with self._lock:
-            self.addedList.DeleteItem(self.downloadList.index(item))
-            self.downloadList.remove(item)
+            self.__addedList.DeleteItem(self.__downloadList.index(item))
+            self.__downloadList.remove(item)
 
         # set finished when all videos are downloaded
     def SetFinished(self):
         self.SetStatusText("Finished")
-        self.downloading = False
+        self.__downloading = False
 
 
 # Item class to encapsulate video and selected options (media type, extension, resolution)
@@ -325,13 +325,13 @@ import threading
 class AddManager(threading.Thread):
     def __init__(self, urlList):
         super(AddManager, self).__init__()
-        self.urlList = urlList
-        self.isRunning = True
+        self.__urlList = urlList
+        self.__isRunning = True
         self._lock = threading.RLock()
 
     def run(self):
-        for url in self.urlList:
-            if self.isRunning:
+        for url in self.__urlList:
+            if self.__isRunning:
                 video = pafy.new(url)
 
                 if video._have_basic: # check current url is available
@@ -343,7 +343,7 @@ class AddManager(threading.Thread):
                     sleep(WAIT_TIME)
 
     def stop(self):
-        self.isRunning = False
+        self.__isRunning = False
 
     def join(self, timeout=None):
         super(AddManager, self).join(timeout)
@@ -356,48 +356,47 @@ from Queue import Queue
 class DownloadManager(threading.Thread):
     def __init__(self, itemList, dir):
         super(DownloadManager, self).__init__()
-        self.dir = dir
-        self.queue = Queue(len(itemList)) # a queue to make it download in order
-        self.threadList = []
-        self.isRunning = True
-        self.abort = False
+        self.__dir = dir
+        self.__queue = Queue(len(itemList)) # a queue to download in order
+        self.__threadList = []
+        self.__isRunning = True
+        self.__abort = False
         self._lock = threading.RLock()
 
         for item in itemList:
-            self.queue.put(item)
+            self.__queue.put(item)
 
     def run(self):
-        while self.isRunning:
-            if len(self.threadList) < 3: # download 3 videos simultaneously
-                if not self.queue.empty():
-                    dl = Downloader(self.queue.get(), self.dir, self.abort)
-                    self.threadList.append(dl)
+        while self.__isRunning:
+            if len(self.__threadList) < 3: # download 3 videos simultaneously
+                if not self.__queue.empty():
+                    dl = Downloader(self.__queue.get(), self.__dir, self.__abort)
+                    self.__threadList.append(dl)
                     dl.start()
                     sleep(WAIT_TIME)
 
-            for t in self.threadList:
+            for t in self.__threadList:
                 if not t.isAlive():
-                    self.threadList.remove(t)
-                else:
-                    with self._lock: # update download progress
-                        frame.UpdateStatus(t.status())
-
+                    self.__threadList.remove(t)
+                else: # update download progress
+                    frame.UpdateStatus(t.status())
                     sleep(WAIT_TIME)
 
-            if len(self.threadList) <= 0 and self.queue.empty(): # when every video is completed
-                self.isRunning = False
+            if len(self.__threadList) <= 0 and self.__queue.empty(): # when every video is completed
+                self.__isRunning = False
 
         with self._lock:
             frame.SetFinished()
 
-    def skip(self): # cancel current download
-        for t in self.threadList:
-            if t.isAlive():
-                t.stop()
+    def skip(self): # cancel current downloads
+        with self._lock:
+            for t in self.__threadList:
+                if t.isAlive():
+                    t.stop()
 
-    def stop(self): # cancel current download and abort further videos
+    def stop(self): # cancel current downloads and abort further ones
         self.skip()
-        self.abort = True
+        self.__abort = True
 
     def join(self, timeout=None):
         super(DownloadManager, self).join(timeout)
@@ -407,31 +406,31 @@ class DownloadManager(threading.Thread):
 class Downloader(threading.Thread):
     def __init__(self, item, downloadPath, abort):
         super(Downloader, self).__init__()
-        self.item = item
-        self.stream = None
-        self.abort = abort
-        self.downloadPath = downloadPath
+        self.__item = item
+        self.__stream = None
+        self.__abort = abort
+        self.__filename = downloadPath + self.__item.video.title + "."
         self._lock = threading.RLock()
 
-        for s in self.item.video.allstreams: # find a stream which satisfy selected options
-            if self.item.selectedExt == s.mediatype + " / " + s.extension + " / " + s.quality:
-                self.stream = s
+        for s in self.__item.video.allstreams: # find a stream which satisfies selected options
+            if self.__item.selectedExt == s.mediatype + " / " + s.extension + " / " + s.quality:
+                self.__stream = s
                 break
 
     def status(self): # current download progress about this video
-        return self.item, self.stream.get_filesize(), self.stream.progress_stats
+        return self.__item, self.__stream.get_filesize(), self.__stream.progress_stats
 
     def run(self): # if the user clicked stop button, the downloader shouldn't start download
-        if not self.abort: # otherwise, check whether the user has already downloaded this video
-            if not os.path.exists(self.downloadPath + self.stream.title + "." + self.stream.extension):
-                self.stream.download(filepath=self.downloadPath + self.stream.title + "." + self.stream.extension)
+        if not self.__abort: # otherwise, check whether the user has already downloaded this video
+            if not os.path.exists(self.__filename + self.__stream.extension):
+                self.__stream.download(filepath=self.__filename + self.__stream.extension)
 
         with self._lock:
-            frame.RemoveFinishedItem(self.item)
+            frame.RemoveFinishedItem(self.__item)
 
     def stop(self): # when the user clicked skip / stop button, current download should be canceled
-        if self.stream:
-            self.stream.cancel()
+        if self.__stream:
+            self.__stream.cancel()
 
     def join(self, timeout=None):
         super(Downloader, self).join(timeout)
