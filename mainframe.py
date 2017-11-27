@@ -60,7 +60,6 @@ class MainFrame(wx.Frame):
 
         # a combobox which includes all available stream options that are available on selected video
         self.__prefCombobox = wx.ComboBox(panel, size=(200, -1), style=wx.CB_DROPDOWN | wx.TE_READONLY)
-        self.Bind(wx.EVT_COMBOBOX_DROPDOWN, self.__onDropdownPrefCombobox, self.__prefCombobox)
         self.Bind(wx.EVT_COMBOBOX, self.__onSelectOption, self.__prefCombobox)
         optBox.Add(self.__prefCombobox)
 
@@ -81,6 +80,7 @@ class MainFrame(wx.Frame):
             self.__addedList.InsertColumn(i, cols[i], wx.TEXT_ALIGNMENT_CENTER)
             self.__addedList.SetColumnWidth(i, columnWidths[i])
 
+        self.Bind(wx.EVT_LIST_ITEM_SELECTED, self.__onSelectItem, self.__addedList)
         hBoxes[3].Add(self.__addedList, flag=wx.EXPAND | wx.LEFT | wx.RIGHT)
         vBox.Add(hBoxes[3], flag=wx.LEFT | wx.RIGHT, border=10)
         vBox.Add((-1, 10))
@@ -144,6 +144,9 @@ class MainFrame(wx.Frame):
         self.__changeDirButton.Enable(not self.__downloading)
         self.__prefCombobox.Enable(not self.__downloading and self.__addedList.SelectedItemCount == 1)
 
+        if self.__addedList.SelectedItemCount != 1:
+            self.__prefCombobox.Clear()
+
         self.__startButton.Enable(not self.__downloading and len(self.__downloadList) > 0 and \
                                   self.__am is not None and not self.__am.isAlive())
         self.__skipButton.Enable(self.__downloading)
@@ -171,6 +174,7 @@ class MainFrame(wx.Frame):
         self.__dm = DownloadManager(self, self.__downloadList, self.__dirText.GetValue())
         self.__dm.start()
         self.__downloading = True
+        self.__prefCombobox.Clear()
         self.SetStatusText("Downloading...")
 
         # event handler for SkipButton
@@ -225,13 +229,15 @@ class MainFrame(wx.Frame):
 
         dialog.Destroy()
 
-        # event handler for dropdowned PrefCombobox
-    def __onDropdownPrefCombobox(self, event):
-        selectedItem = self.__downloadList[self.__addedList.GetFocusedItem()]
-        self.__prefCombobox.Clear()
-        self.__prefCombobox.AppendItems(selectedItem.options)
+        # event handler for selecting an item -> update PrefCombobox list
+    def __onSelectItem(self, event):
+        if self.__addedList.SelectedItemCount == 1:
+            selectedItem = self.__downloadList[self.__addedList.GetFocusedItem()]
+            self.__prefCombobox.Clear()
+            self.__prefCombobox.AppendItems(selectedItem.options)
+            self.__prefCombobox.SetValue(selectedItem.selectedExt)
 
-        # event handler for selecting PrefCombobox
+        # event handler for selecting an option in PrefCombobox -> update selected item's selected extension
     def __onSelectOption(self, event):
         selectedItem = self.__addedList.GetFocusedItem()
         self.__downloadList[selectedItem].setSelectedExt(self.__prefCombobox.GetStringSelection())
