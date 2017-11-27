@@ -7,17 +7,17 @@ import wx
 
 FRAME_WIDTH = 870
 FRAME_HEIGHT = 480
-WAIT_TIME = 0.5
+WAIT_TIME = 0.2
 
 
 # MainFrame class to handle UI
 class MainFrame(wx.Frame):
     def __init__(self):
-        wx.Frame.__init__(self, None, -1, title="YouTube Downloader", size=(FRAME_WIDTH, FRAME_HEIGHT), style=wx.DEFAULT_FRAME_STYLE)
+        wx.Frame.__init__(self, None, -1, title="YouTube Downloader", size=(FRAME_WIDTH, FRAME_HEIGHT), \
+                          style=wx.DEFAULT_FRAME_STYLE)
         self.SetMinSize((FRAME_WIDTH, FRAME_HEIGHT))
         self.SetBackgroundColour("white")
         self.Bind(wx.EVT_CLOSE, self.onClose)
-        self._lock = threading.RLock()
 
         panel = wx.Panel(self)
         vBox = wx.BoxSizer(wx.VERTICAL)
@@ -85,6 +85,7 @@ class MainFrame(wx.Frame):
         vBox.Add(hBoxes[3], flag=wx.LEFT | wx.RIGHT, border=10)
         vBox.Add((-1, 10))
 
+        # add 5 buttons (start, skip, stop, info, remove)
         self.__startButton = wx.BitmapButton(panel, -1, wx.Bitmap("images/startButtonIcon.png"), style=wx.NO_BORDER)
         self.Bind(wx.EVT_BUTTON, self.OnClickStartButton, self.__startButton)
         hBoxes[4].Add(self.__startButton, flag=wx.RIGHT, border=12)
@@ -109,6 +110,7 @@ class MainFrame(wx.Frame):
         vBox.Add((-1, 10))
         panel.SetSizer(vBox)
 
+        # status bar to show events
         self.CreateStatusBar()
         self.GetStatusBar().SetBackgroundColour("white")
         self.SetStatusText("")
@@ -137,16 +139,19 @@ class MainFrame(wx.Frame):
 
         # UI updater to enable / disable button properly
     def UIUpdater(self, event):
-        self.__addButton.Enable(not self.__downloading and self.__sourceText.GetValue() != "" and True if self.__am is None else not self.__am.isAlive())
+        self.__addButton.Enable(not self.__downloading and self.__sourceText.GetValue() != "" and \
+                                True if self.__am is None else not self.__am.isAlive())
         self.__changeDirButton.Enable(not self.__downloading)
         self.__prefCombobox.Enable(not self.__downloading and self.__addedList.SelectedItemCount == 1)
 
-        self.__startButton.Enable(not self.__downloading and len(self.__downloadList) > 0 and self.__am is not None and not self.__am.isAlive())
+        self.__startButton.Enable(not self.__downloading and len(self.__downloadList) > 0 and \
+                                  self.__am is not None and not self.__am.isAlive())
         self.__skipButton.Enable(self.__downloading)
         self.__stopButton.Enable(self.__downloading)
 
         self.__infoButton.Enable(self.__addedList.SelectedItemCount == 1)
-        self.__removeButton.Enable(not self.__downloading and self.__addedList.SelectedItemCount == 1 and self.__am is not None and not self.__am.isAlive())
+        self.__removeButton.Enable(not self.__downloading and self.__addedList.SelectedItemCount == 1 \
+                                   and self.__am is not None and not self.__am.isAlive())
 
         # event handler for AddButton
     def OnClickAddButton(self, event):
@@ -187,8 +192,6 @@ class MainFrame(wx.Frame):
 
         # event handler for RemoveButton
     def OnClickRemoveButton(self, event):
-        #with self._lock:
-
         toRemove = self.__downloadList.pop(self.__addedList.GetFocusedItem())
 
         self.__addedList.DeleteItem(self.__addedList.GetFocusedItem())
@@ -218,11 +221,9 @@ class MainFrame(wx.Frame):
 
         # add item to list
     def AddToList(self, item):
-        #with self._lock:
-
         self.__downloadList.append(item)
-
         num_items = self.__addedList.GetItemCount()
+
         self.__addedList.InsertItem(num_items, item.video.title)
         self.__addedList.SetItem(num_items, 1, item.video.author)
         self.__addedList.SetItem(num_items, 2, item.video.duration)
@@ -241,8 +242,6 @@ class MainFrame(wx.Frame):
         # remove item from list when downloaded
     def RemoveFinishedItem(self, item):
         self.__addedList.DeleteItem(self.__downloadList.index(item))
-
-        #with self._lock:
         self.__downloadList.remove(item)
 
         # set finished when all videos are downloaded
@@ -274,7 +273,8 @@ class Item():
                 orgFilesize = self.__sizes[i]
 
         if orgFilesize is not None:
-            self.filesize = round(orgFilesize / 1024 ** 2, 1).__str__() + "MB" if orgFilesize > 1024 ** 2 else round(orgFilesize / 1024, 1).__str__() + "KB"
+            self.filesize = round(orgFilesize / 1024 ** 2, 1).__str__() + "MB" if orgFilesize > 1024 ** 2 else \
+                round(orgFilesize / 1024, 1).__str__() + "KB"
         else:
             self.filesize = "-"
 
@@ -314,8 +314,8 @@ class VideoInfoDialog(wx.Dialog):
         self.Bind(wx.EVT_CLOSE, self.onClose)
 
         tagList = [ "제   목", "저   자", "길   이", "평   점", "조회수", "좋아요", "싫어요", "설   명" ]
-        infoList = [ video.title, video.author, video.duration, round(video.rating, 1).__str__(), video.viewcount.__str__(),
-                     video.likes.__str__(), video.dislikes.__str__(), video.description ]
+        infoList = [ video.title, video.author, video.duration, round(video.rating, 1).__str__(), \
+                     video.viewcount.__str__(), video.likes.__str__(), video.dislikes.__str__(), video.description ]
 
         sizer = wx.BoxSizer(wx.VERTICAL)
         dataList = []
@@ -433,9 +433,11 @@ class Downloader(threading.Thread):
 
     def updateStatus(self): # current download progress about this video
         if self.__stream.has_stats:
-            rate = round(self.__stream.progress_stats[0] * 100, 1).__str__() + "%"
-            progress = round(self.__stream.progress_stats[1] / 1024, 1).__str__() + "MB/s" if self.__stream.progress_stats[1] > 1024 else round(self.__stream.progress_stats[1], 1).__str__() + "KB/s"
-            eta = round(self.__stream.progress_stats[2], 1).__str__() + "초"
+            stats = self.__stream.progress_stats
+            rate = round(stats[0] * 100, 1).__str__() + "%"
+            progress = round(stats[1] / 1024, 1).__str__() + "MB/s" if stats[1] > 1024 else \
+                round(stats[1], 1).__str__() + "KB/s"
+            eta = round(stats[2], 1).__str__() + "초"
         else:
             rate = progress = eta = "-"
 
