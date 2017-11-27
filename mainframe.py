@@ -125,7 +125,7 @@ class MainFrame(wx.Frame):
         self.Center()
         self.Show()
 
-        # stop all downloads before force close
+        # stop all threads before force close
     def __onClose(self, event):
         if self.__am and self.__am.isAlive():
             self.__am.stop()
@@ -393,6 +393,7 @@ class DownloadManager(threading.Thread):
             for t in self.__threadList:
                 if not t.isAlive():
                     self.__threadList.remove(t)
+                    break
                 else: # update download progress
                     t.updateStatus()
                     sleep(WAIT_TIME)
@@ -407,6 +408,7 @@ class DownloadManager(threading.Thread):
         for t in self.__threadList:
             if t.isAlive():
                 t.stop()
+                t.join()
 
     def stop(self): # cancel current downloads and abort further ones
         self.skip()
