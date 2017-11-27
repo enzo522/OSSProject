@@ -2,13 +2,12 @@
 # -*- coding: utf-8 -*-
 
 import wx
-import pafy
-from item import Item
+from addmanager import AddManager
+from downloadmanager import DownloadManager
 from info import VideoInfoDialog
 
 FRAME_WIDTH = 870
 FRAME_HEIGHT = 480
-WAIT_TIME = 0.2
 
 
 # MainFrame class to handle UI
@@ -163,13 +162,13 @@ class MainFrame(wx.Frame):
                 if self.__sourceText.GetLineText(i) != "": # blank is useless
                     urlList.append(self.__sourceText.GetLineText(i))
 
-            self.__am = AddManager(urlList)
+            self.__am = AddManager(self, urlList)
             self.__am.start()
             self.__sourceText.Clear()
 
         # event handler for StartButton
     def __onClickStartButton(self, event):
-        self.__dm = DownloadManager(self.__downloadList, self.__dirText.GetValue())
+        self.__dm = DownloadManager(self, self.__downloadList, self.__dirText.GetValue())
         self.__dm.start()
         self.__downloading = True
         self.SetStatusText("Downloading...")
@@ -193,8 +192,7 @@ class MainFrame(wx.Frame):
         y = 0 # y-coordinate to move info dialog if multiple items are selected
 
         while True: # do-while loop to show information dialogs for multiple selected items
-            infoDialog = VideoInfoDialog(self.__downloadList[selectedItem].video, x, y)
-            infoDialog.Show()
+            VideoInfoDialog(self.__downloadList[selectedItem].video, x, y).show()
             selectedItem = self.__addedList.GetNextSelected(selectedItem)
             x += 30
             y += 30
@@ -270,138 +268,3 @@ class MainFrame(wx.Frame):
     def setFinished(self):
         self.SetStatusText("Finished")
         self.__downloading = False
-
-
-from time import sleep
-import threading
-import os
-
-
-# AddManager class to add urls to download list.
-class AddManager(threading.Thread):
-    def __init__(self, urlList):
-        super(AddManager, self).__init__()
-        self.__urlList = urlList
-        self.__isRunning = True
-        self._lock = threading.RLock()
-
-    def run(self):
-        for url in self.__urlList:
-            if self.__isRunning:
-                video = pafy.new(url)
-
-                if video.has_basic:  # check current url is available
-                    default = video.getbest()  # default selected options are the best ones that current video has
-
-                    with self._lock:
-                        frame.addToDownloadList(Item(video, default.mediatype + " / " + default.extension + " / " + \
-                                                     default.resolution))
-
-                    sleep(WAIT_TIME)
-
-    def stop(self):
-        self.__isRunning = False
-
-    def join(self, timeout=None):
-        super(AddManager, self).join(timeout)
-
-
-from Queue import Queue
-
-
-# DownloadManager class to download selected videos.
-class DownloadManager(threading.Thread):
-    def __init__(self, itemList, dir):
-        super(DownloadManager, self).__init__()
-        self.__dir = dir
-        self.__queue = Queue(len(itemList))  # a queue to download in order
-        self.__threadList = []
-        self.__isRunning = True
-        self.__abort = False
-        self._lock = threading.RLock()
-
-        for item in itemList:
-            self.__queue.put(item)
-
-    def run(self):
-        while self.__isRunning:
-            if len(self.__threadList) < 3:  # download 3 videos simultaneously
-                if not self.__queue.empty():
-                    dl = Downloader(self.__queue.get(), self.__dir, self.__abort)
-                    self.__threadList.append(dl)
-                    dl.start()
-                    sleep(WAIT_TIME)
-
-            for t in self.__threadList:
-                if not t.isAlive():
-                    self.__threadList.remove(t)
-                    break
-                else:  # update download progress
-                    t.updateStatus()
-                    sleep(WAIT_TIME)
-
-            if len(self.__threadList) <= 0 and self.__queue.empty():  # when every video is completed
-                self.__isRunning = False
-
-        with self._lock:
-            frame.setFinished()
-
-    def skip(self):  # cancel current downloads
-        for t in self.__threadList:
-            if t.isAlive():
-                t.stop()
-                t.join()
-
-    def stop(self):  # cancel current downloads and abort further ones
-        self.skip()
-        self.__abort = True
-
-    def join(self, timeout=None):
-        super(DownloadManager, self).join(timeout)
-
-
-# Downloader class to download a video.
-class Downloader(threading.Thread):
-    def __init__(self, item, downloadPath, abort):
-        super(Downloader, self).__init__()
-        self.__item = item
-        self.__stream = None
-        self.__abort = abort
-        self.__filename = downloadPath + self.__item.video.title + "."
-        self._lock = threading.RLock()
-
-        for s in self.__item.video.allstreams:  # find a stream which satisfies selected options
-            if self.__item.selectedExt == s.mediatype + " / " + s.extension + " / " + s.quality:
-                self.__stream = s
-                break
-
-    def updateStatus(self):  # current download progress about this video
-        if self.__stream.has_stats:
-            stats = self.__stream.progress_stats
-            rate = round(stats[0] * 100, 1).__str__() + "%"
-            progress = round(stats[1] / 1024, 1).__str__() + "MB/s" if stats[1] > 1024 else \
-                round(stats[1], 1).__str__() + "KB/s"
-            eta = round(stats[2], 1).__str__() + "초"
-
-            frame.updateStatus(self.__item, progress, rate, eta)
-
-    def run(self):  # if the user clicked stop button, the downloader shouldn't start download
-        if not self.__abort:  # otherwise, check whether the user has already downloaded this video
-            if not os.path.exists(self.__filename + self.__stream.extension):
-                self.__stream.download(filepath=self.__filename + self.__stream.extension, quiet=True)
-
-        with self._lock:
-            frame.removeFinishedItem(self.__item)
-
-    def stop(self):  # when the user clicked skip / stop button, current download should be canceled
-        if self.__stream:
-            self.__stream.cancel()
-
-    def join(self, timeout=None):
-        super(Downloader, self).join(timeout)
-
-
-if __name__ == '__main__':
-    app = wx.App()
-    frame = MainFrame()
-    app.MainLoop()

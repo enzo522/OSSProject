@@ -6,7 +6,7 @@ from wx.grid import GridCellAutoWrapStringRenderer
 
 
 # InfoTable class to set information of selected video.
-class InfoTable(wx.grid.Grid):
+class _InfoTable(wx.grid.Grid):
     def __init__(self, parent, dataList):
         wx.grid.Grid.__init__(self, parent, -1)
 
@@ -42,7 +42,7 @@ class VideoInfoDialog(wx.Dialog):
             data = (tagList[i], infoList[i])
             dataList.append(data)
 
-        sizer.Add(InfoTable(self, dataList), flag=wx.ALL, border=10)
+        sizer.Add(_InfoTable(self, dataList), flag=wx.ALL, border=10)
         panel.SetSizerAndFit(sizer)
         self.Fit()
 
@@ -51,3 +51,6 @@ class VideoInfoDialog(wx.Dialog):
 
     def __onClose(self, event):
         self.Destroy()
+
+    def show(self):
+        self.Show()

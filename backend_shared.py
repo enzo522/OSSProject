@@ -446,7 +446,7 @@ class BaseStream(object):
         self._filename = None
         self._fsize = None
         self._active = False
-        self.progress_stats = None
+        self._progress_stats = None
 
     def generate_filename(self, meta=False, max_length=None):
         """ Generate filename. """
@@ -634,19 +634,19 @@ class BaseStream(object):
             else: # Avoid ZeroDivisionError
                 rate = 0
                 eta = 0
-            self.progress_stats = (bytesdone * 1.0 / total, rate, eta)
+            self._progress_stats = (bytesdone * 1.0 / total, rate, eta)
 
             if not chunk:
                 outfh.close()
                 break
 
             if not quiet:
-                status = status_string.format(*self.progress_stats)
+                status = status_string.format(*self._progress_stats)
                 sys.stdout.write("\r" + status + ' ' * 4 + "\r")
                 sys.stdout.flush()
 
             if callback:
-                callback(total, *self.progress_stats)
+                callback(total, *self._progress_stats)
 
         if self._active:
 
@@ -663,7 +663,12 @@ class BaseStream(object):
             return temp_filepath
 
     def has_stats(self):
-        return self.progress_stats is not None
+        return self._progress_stats is not None
+
+    @property
+    def progress_stats(self):
+        return self._progress_stats if self.has_stats() else (0, 0, 0)
+
 
 def remux(infile, outfile, quiet=False, muxer="ffmpeg"):
     """ Remux audio. """
