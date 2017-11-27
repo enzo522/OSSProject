@@ -187,8 +187,9 @@ class MainFrame(wx.Frame):
 
         # event handler for RemoveButton
     def OnClickRemoveButton(self, event):
-        with self._lock:
-            toRemove = self.__downloadList.pop(self.__addedList.GetFocusedItem())
+        #with self._lock:
+
+        toRemove = self.__downloadList.pop(self.__addedList.GetFocusedItem())
 
         self.__addedList.DeleteItem(self.__addedList.GetFocusedItem())
         self.SetStatusText(toRemove.video.title + " has been removed.")
@@ -217,8 +218,9 @@ class MainFrame(wx.Frame):
 
         # add item to list
     def AddToList(self, item):
-        with self._lock:
-            self.__downloadList.append(item)
+        #with self._lock:
+
+        self.__downloadList.append(item)
 
         num_items = self.__addedList.GetItemCount()
         self.__addedList.InsertItem(num_items, item.video.title)
@@ -230,23 +232,18 @@ class MainFrame(wx.Frame):
         self.SetStatusText(item.video.title + " has been added.")
 
         # update status of downloading item
-    def UpdateStatus(self, tuple):
-        selectedItem = self.__downloadList.index(tuple[0])
-
-        if tuple[1][1] > 1024: # about download speed
-            self.__addedList.SetItem(selectedItem, 5, round(tuple[1][1] / 1024, 1).__str__() + "MB/s")
-        else:
-            self.__addedList.SetItem(selectedItem, 5, round(tuple[1][1], 1).__str__() + "KB/s")
-
-        # about progress rate and estimated time of arrival
-        self.__addedList.SetItem(selectedItem, 6, round(tuple[1][0] * 100, 1).__str__() + "%")
-        self.__addedList.SetItem(selectedItem, 7, round(tuple[1][2], 1).__str__() + "초")
+    def UpdateStatus(self, item, rate, progress, eta):
+        selectedItem = self.__downloadList.index(item)
+        self.__addedList.SetItem(selectedItem, 5, rate)
+        self.__addedList.SetItem(selectedItem, 6, progress)
+        self.__addedList.SetItem(selectedItem, 7, eta)
 
         # remove item from list when downloaded
     def RemoveFinishedItem(self, item):
-        with self._lock:
-            self.__addedList.DeleteItem(self.__downloadList.index(item))
-            self.__downloadList.remove(item)
+        self.__addedList.DeleteItem(self.__downloadList.index(item))
+
+        #with self._lock:
+        self.__downloadList.remove(item)
 
         # set finished when all videos are downloaded
     def SetFinished(self):
@@ -260,22 +257,26 @@ class Item():
         self.video = video
         self.selectedExt = selectedExt
         self.filesize = None
+        self.__sizes = []
         self.options = []
+
+        for s in self.video.allstreams:
+            self.options.append(s.mediatype + " / " + s.extension + " / " + s.quality)
+            self.__sizes.append(s.get_filesize())
+
         self.CalcFilesize()
 
     def CalcFilesize(self):
         orgFilesize = None
 
-        for s in self.video.allstreams:
-            self.options.append(s.mediatype + " / " + s.extension + " / " + s.quality)
-
-            if self.selectedExt == self.options[len(self.options) - 1]:
-                orgFilesize = s.get_filesize()
+        for i in range(len(self.options)):
+            if self.selectedExt == self.options[i]:
+                orgFilesize = self.__sizes[i]
 
         if orgFilesize is not None:
             self.filesize = round(orgFilesize / 1024 ** 2, 1).__str__() + "MB" if orgFilesize > 1024 ** 2 else round(orgFilesize / 1024, 1).__str__() + "KB"
         else:
-            self.filesize = (0).__str__()
+            self.filesize = "-"
 
     def SetSelectedExt(self, newExt):
         self.selectedExt = newExt
@@ -431,8 +432,14 @@ class Downloader(threading.Thread):
                 break
 
     def updateStatus(self): # current download progress about this video
-        with self._lock:
-            frame.UpdateStatus((self.__item, self.__stream.progress_stats))
+        if self.__stream.has_stats:
+            rate = round(self.__stream.progress_stats[0] * 100, 1).__str__() + "%"
+            progress = round(self.__stream.progress_stats[1] / 1024, 1).__str__() + "MB/s" if self.__stream.progress_stats[1] > 1024 else round(self.__stream.progress_stats[1], 1).__str__() + "KB/s"
+            eta = round(self.__stream.progress_stats[2], 1).__str__() + "초"
+        else:
+            rate = progress = eta = "-"
+
+        frame.UpdateStatus(self.__item, progress, rate, eta)
 
     def run(self): # if the user clicked stop button, the downloader shouldn't start download
         if not self.__abort: # otherwise, check whether the user has already downloaded this video

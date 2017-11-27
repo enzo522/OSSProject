@@ -1,14 +1,14 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-import os
 import hashlib
-import tempfile
 import json
+import logging
+import os
 import re
 import sys
+import tempfile
 import time
-import logging
 from xml.etree import ElementTree
 
 if sys.version_info[:2] >= (3, 0):

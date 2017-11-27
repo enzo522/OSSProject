@@ -17,11 +17,11 @@ You should have received a copy of the GNU Lesser General Public License along
 with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-import sys
-import os
 import logging
-import time
+import os
 import re
+import sys
+import time
 
 if sys.version_info[:2] >= (3, 0):
     # pylint: disable=E0611,F0401,I0011

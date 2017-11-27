@@ -1,12 +1,12 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
+import logging
 import os
 import re
+import subprocess
 import sys
 import time
-import logging
-import subprocess
 
 if sys.version_info[:2] >= (3, 0):
     # pylint: disable=E0611,F0401,I0011
@@ -442,6 +442,7 @@ class BaseStream(object):
         self._filename = None
         self._fsize = None
         self._active = False
+        self.progress_stats = None
 
     def generate_filename(self, meta=False, max_length=None):
         """ Generate filename. """
@@ -656,6 +657,9 @@ class BaseStream(object):
         else:  # download incomplete, return temp filepath
             outfh.close()
             return temp_filepath
+
+    def has_stats(self):
+        return self.progress_stats is not None
 
 def remux(infile, outfile, quiet=False, muxer="ffmpeg"):
     """ Remux audio. """

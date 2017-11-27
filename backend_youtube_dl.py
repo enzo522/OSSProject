@@ -2,9 +2,9 @@
 # -*- coding: utf-8 -*-
 
 '''모듈 불러오기'''
-import sys #파이썬 인터프리터 제어
-import time
 import logging
+import sys  # 파이썬 인터프리터 제어
+import time
 
 '''설치된 파이썬의 버전에 따른 인코딩'''
 if sys.version_info[:2] >= (3, 0):
