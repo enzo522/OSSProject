@@ -417,6 +417,10 @@ class BasePafy(object):
         self._viewcount = int(self._viewcount)
         self._description = pl_data.get("description")
 
+    @property
+    def has_basic(self):
+        return self._have_basic
+
 
 class BaseStream(object):
 

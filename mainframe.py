@@ -149,8 +149,8 @@ class MainFrame(wx.Frame):
         self.__skipButton.Enable(self.__downloading)
         self.__stopButton.Enable(self.__downloading)
 
-        self.__infoButton.Enable(self.__addedList.SelectedItemCount == 1)
-        self.__removeButton.Enable(not self.__downloading and self.__addedList.SelectedItemCount == 1 \
+        self.__infoButton.Enable(self.__addedList.SelectedItemCount > 0)
+        self.__removeButton.Enable(not self.__downloading and self.__addedList.SelectedItemCount > 0 \
                                    and self.__am is not None and not self.__am.isAlive())
 
         # event handler for AddButton
@@ -187,19 +187,39 @@ class MainFrame(wx.Frame):
 
         # event handler for InfoButton
     def __onClickInfoButton(self, event):
-        infoDialog = VideoInfoDialog(self.__downloadList[self.__addedList.GetFocusedItem()].video)
-        infoDialog.Show()
+        selectedItem = self.__addedList.GetFirstSelected()
+        x = 0 # x-coordinate to move info dialog if multiple items are selected
+        y = 0 # y-coordinate to move info dialog if multiple items are selected
+
+        while True: # do-while loop to show information dialogs for multiple selected items
+            infoDialog = VideoInfoDialog(self.__downloadList[selectedItem].video, x, y)
+            infoDialog.Show()
+            selectedItem = self.__addedList.GetNextSelected(selectedItem)
+            x += 30
+            y += 30
+
+            if selectedItem < 0:
+                break
 
         # event handler for RemoveButton
     def __onClickRemoveButton(self, event):
-        toRemove = self.__downloadList.pop(self.__addedList.GetFocusedItem())
+        selectedItem = self.__addedList.GetFirstSelected()
+        removeList = []
 
-        self.__addedList.DeleteItem(self.__addedList.GetFocusedItem())
-        self.SetStatusText(toRemove.video.title + " has been removed.")
+        while selectedItem >= 0: # get every index to remove
+            removeList.append((selectedItem, self.__downloadList[selectedItem]))
+            selectedItem = self.__addedList.GetNextSelected(selectedItem)
+
+        removeList.sort(reverse=True) # sort remove list reversely to remove safely by starting from latest index
+
+        for itemTuple in removeList:
+            self.SetStatusText(itemTuple[1].video.title + " has been removed.")
+            self.__downloadList.remove(itemTuple[1])
+            self.__addedList.DeleteItem(itemTuple[0])
 
         # event handler for ChangeDirButton
     def __onClickChangeDirButton(self, event):
-        dialog = wx.DirDialog(None, message="test", defaultPath=self.__dirText.GetValue())
+        dialog = wx.DirDialog(None, defaultPath=self.__dirText.GetValue())
 
         if dialog.ShowModal() == wx.ID_OK:
             self.__dirText.SetValue(dialog.GetPath() + "/")
@@ -273,9 +293,8 @@ class Item():
                 orgFilesize = self.__sizes[i]
 
         self.filesize = round(orgFilesize / 1024 ** 2, 1).__str__() + "MB" if orgFilesize > 1024 ** 2 else \
-                round(orgFilesize / 1024, 1).__str__() + "KB" \
-            if orgFilesize is not None \
-            else "-"
+            round(orgFilesize / 1024, 1).__str__() + "KB" \
+            if orgFilesize is not None else ""
 
     def setSelectedExt(self, newExt):
         self.selectedExt = newExt
@@ -306,7 +325,7 @@ class InfoTable(wx.grid.Grid):
 
 # VideoInfoDialog class to show information table which was made by InfoTable object.
 class VideoInfoDialog(wx.Dialog):
-    def __init__(self, video):
+    def __init__(self, video, x, y):
         wx.Dialog.__init__(self, None, -1, "Info")
         panel = wx.Panel(self)
         self.SetBackgroundColour("white")
@@ -326,6 +345,9 @@ class VideoInfoDialog(wx.Dialog):
         sizer.Add(InfoTable(self, dataList), flag=wx.ALL, border=10)
         panel.SetSizerAndFit(sizer)
         self.Fit()
+
+        if x > 0 and y > 0:
+            self.Move(self.GetPosition().__iadd__((x, y)))
 
     def __onClose(self, event):
         self.Destroy()
@@ -348,7 +370,7 @@ class AddManager(threading.Thread):
             if self.__isRunning:
                 video = pafy.new(url)
 
-                if video._have_basic: # check current url is available
+                if video.has_basic: # check current url is available
                     default = video.getbest() # default selected options are the best ones that current video has
 
                     with self._lock:
