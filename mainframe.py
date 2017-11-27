@@ -205,18 +205,15 @@ class MainFrame(wx.Frame):
         # event handler for dropdowned PrefCombobox
     def OnDropDownRefreshItems(self, event):
         selectedItem = self.__downloadList[self.__addedList.GetFocusedItem()]
-        optList = []
         self.__prefCombobox.Clear()
-
-        for s in selectedItem.video.allstreams: # get all the available options about selected video
-            optList.append(s.mediatype + " / " + s.extension + " / " + s.quality)
-
-        self.__prefCombobox.AppendItems(optList)
+        self.__prefCombobox.AppendItems(selectedItem.options)
 
         # event handler for selecting PrefCombobox
     def OnSelectType(self, event):
-        self.__downloadList[self.__addedList.GetFocusedItem()].selectedExt = self.__prefCombobox.GetStringSelection()
-        self.__addedList.SetItem(self.__addedList.GetFocusedItem(), 3, self.__prefCombobox.GetStringSelection())
+        selectedItem = self.__addedList.GetFocusedItem()
+        self.__downloadList[selectedItem].SetSelectedExt(self.__prefCombobox.GetStringSelection())
+        self.__addedList.SetItem(selectedItem, 3, self.__downloadList[selectedItem].selectedExt)
+        self.__addedList.SetItem(selectedItem, 4, self.__downloadList[selectedItem].filesize)
 
         # add item to list
     def AddToList(self, item):
@@ -228,6 +225,7 @@ class MainFrame(wx.Frame):
         self.__addedList.SetItem(num_items, 1, item.video.author)
         self.__addedList.SetItem(num_items, 2, item.video.duration)
         self.__addedList.SetItem(num_items, 3, item.selectedExt)
+        self.__addedList.SetItem(num_items, 4, item.filesize)
 
         self.SetStatusText(item.video.title + " has been added.")
 
@@ -235,19 +233,14 @@ class MainFrame(wx.Frame):
     def UpdateStatus(self, tuple):
         selectedItem = self.__downloadList.index(tuple[0])
 
-        if tuple[1] > 1024 ** 2: # about file size
-            self.__addedList.SetItem(selectedItem, 4, round(tuple[1] / 1024 ** 2, 1).__str__() + "MB")
+        if tuple[1][1] > 1024: # about download speed
+            self.__addedList.SetItem(selectedItem, 5, round(tuple[1][1] / 1024, 1).__str__() + "MB/s")
         else:
-            self.__addedList.SetItem(selectedItem, 4, round(tuple[1] / 1024, 1).__str__() + "KB")
-
-        if tuple[2][1] > 1024: # about download speed
-            self.__addedList.SetItem(selectedItem, 5, round(tuple[2][1] / 1024, 1).__str__() + "MB/s")
-        else:
-            self.__addedList.SetItem(selectedItem, 5, round(tuple[2][1], 1).__str__() + "KB/s")
+            self.__addedList.SetItem(selectedItem, 5, round(tuple[1][1], 1).__str__() + "KB/s")
 
         # about progress rate and estimated time of arrival
-        self.__addedList.SetItem(selectedItem, 6, round(tuple[2][0] * 100, 1).__str__() + "%")
-        self.__addedList.SetItem(selectedItem, 7, round(tuple[2][2], 1).__str__() + "초")
+        self.__addedList.SetItem(selectedItem, 6, round(tuple[1][0] * 100, 1).__str__() + "%")
+        self.__addedList.SetItem(selectedItem, 7, round(tuple[1][2], 1).__str__() + "초")
 
         # remove item from list when downloaded
     def RemoveFinishedItem(self, item):
@@ -266,6 +259,27 @@ class Item():
     def __init__(self, video, selectedExt):
         self.video = video
         self.selectedExt = selectedExt
+        self.filesize = None
+        self.options = []
+        self.CalcFilesize()
+
+    def CalcFilesize(self):
+        orgFilesize = None
+
+        for s in self.video.allstreams:
+            self.options.append(s.mediatype + " / " + s.extension + " / " + s.quality)
+
+            if self.selectedExt == self.options[len(self.options) - 1]:
+                orgFilesize = s.get_filesize()
+
+        if orgFilesize is not None:
+            self.filesize = round(orgFilesize / 1024 ** 2, 1).__str__() + "MB" if orgFilesize > 1024 ** 2 else round(orgFilesize / 1024, 1).__str__() + "KB"
+        else:
+            self.filesize = (0).__str__()
+
+    def SetSelectedExt(self, newExt):
+        self.selectedExt = newExt
+        self.CalcFilesize()
 
 
 import wx.grid
@@ -379,7 +393,7 @@ class DownloadManager(threading.Thread):
                 if not t.isAlive():
                     self.__threadList.remove(t)
                 else: # update download progress
-                    frame.UpdateStatus(t.status())
+                    t.updateStatus()
                     sleep(WAIT_TIME)
 
             if len(self.__threadList) <= 0 and self.__queue.empty(): # when every video is completed
@@ -389,10 +403,9 @@ class DownloadManager(threading.Thread):
             frame.SetFinished()
 
     def skip(self): # cancel current downloads
-        with self._lock:
-            for t in self.__threadList:
-                if t.isAlive():
-                    t.stop()
+        for t in self.__threadList:
+            if t.isAlive():
+                t.stop()
 
     def stop(self): # cancel current downloads and abort further ones
         self.skip()
@@ -417,8 +430,9 @@ class Downloader(threading.Thread):
                 self.__stream = s
                 break
 
-    def status(self): # current download progress about this video
-        return self.__item, self.__stream.get_filesize(), self.__stream.progress_stats
+    def updateStatus(self): # current download progress about this video
+        with self._lock:
+            frame.UpdateStatus((self.__item, self.__stream.progress_stats))
 
     def run(self): # if the user clicked stop button, the downloader shouldn't start download
         if not self.__abort: # otherwise, check whether the user has already downloaded this video

@@ -134,9 +134,6 @@ class YtdlStream(BaseStream):
         # Fallback
         return super(YtdlStream, self).get_filesize()
 
-    def progress_stats(self):
-        return super(YtdlStream, self).progress_stats
-
 class ErrorMsg(threading.Thread):
     def __init__(self, videoid):
         super(ErrorMsg, self).__init__()
