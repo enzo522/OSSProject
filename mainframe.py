@@ -115,6 +115,7 @@ class MainFrame(wx.Frame):
         self.GetStatusBar().SetBackgroundColour("white")
         self.SetStatusText("")
 
+        self.__urlList = []
         self.__downloadList = []
         self.__downloading = False
 
@@ -159,13 +160,15 @@ class MainFrame(wx.Frame):
         # event handler for AddButton
     def __onClickAddButton(self, event):
         if self.__sourceText.GetValue():
-            urlList = []
+            urls = []
 
             for i in range(self.__sourceText.GetNumberOfLines()):
-                if self.__sourceText.GetLineText(i) != "": # blank is useless
-                    urlList.append(self.__sourceText.GetLineText(i))
+                if self.__sourceText.GetLineText(i) != "" and\
+                        self.__sourceText.GetLineText(i) not in self.__urlList: # skip blank and duplicated url
+                    self.__urlList.append(self.__sourceText.GetLineText(i))
+                    urls.append(self.__sourceText.GetLineText(i))
 
-            self.__am = AddManager(self, urlList)
+            self.__am = AddManager(self, urls)
             self.__am.start()
             self.__sourceText.Clear()
 
@@ -174,6 +177,7 @@ class MainFrame(wx.Frame):
         self.__dm = DownloadManager(self, self.__downloadList, self.__dirText.GetValue())
         self.__dm.start()
         self.__downloading = True
+        self.__urlList = []
         self.__prefCombobox.Clear()
         self.SetStatusText("Downloading...")
 
