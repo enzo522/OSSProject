@@ -55,17 +55,23 @@ class MainFrame(wx.Frame):
         dirBox.Add(self.__changeDirButton, flag=wx.ALIGN_CENTER_VERTICAL | wx.RIGHT, border=8)
 
         defaultDir = ""
-
-        if os.path.exists(DEFAULT_DIR):
+        # set default download directory
+        if os.path.exists(DEFAULT_DIR): # if the user has already set default directory, read it
             dirFile = open(DEFAULT_DIR, "r")
             defaultDir = dirFile.readline()
-        else:
+        else: # otherwise, make the user set default directory
             dialog = wx.DirDialog(None)
 
             if dialog.ShowModal() == wx.ID_OK:
+                if os.name == "nt": # setting directory for Windows
+                    defaultDir = dialog.GetPath() + "\\"
+                else: # for Linux or macOS
+                    defaultDir = dialog.GetPath() + "/"
+
                 dirFile = open(DEFAULT_DIR, "w")
-                defaultDir = dialog.GetPath() + "/"
                 dirFile.write(defaultDir)
+            else: # if the user click cancel, program should be exited
+                self.Destroy()
 
             dialog.Destroy()
 
@@ -252,8 +258,12 @@ class MainFrame(wx.Frame):
         dialog = wx.DirDialog(None, defaultPath=self.__dirText.GetValue())
 
         if dialog.ShowModal() == wx.ID_OK:
+            if os.name == "nt": # setting directory for Windows
+                self.__dirText.SetValue(dialog.GetPath() + "\\")
+            else: # for Linux or macOS
+                self.__dirText.SetValue(dialog.GetPath() + "/")
+
             dirFile = open(DEFAULT_DIR, "w")
-            self.__dirText.SetValue(dialog.GetPath() + "/")
             dirFile.write(self.__dirText.GetValue())
 
         dialog.Destroy()
