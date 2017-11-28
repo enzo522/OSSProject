@@ -28,6 +28,7 @@ class MainFrame(wx.Frame):
 
         sourceLabel = wx.StaticText(panel, label="URLs:")
         self.__addButton = wx.BitmapButton(panel, -1, wx.Bitmap("images/addButtonIcon.png"), style=wx.NO_BORDER)
+        self.__addButton.SetBackgroundColour("white")
         self.Bind(wx.EVT_BUTTON, self.__onClickAddButton, self.__addButton)
 
         # labelGridSizer includes attributes that place on the top
@@ -46,6 +47,7 @@ class MainFrame(wx.Frame):
         # a button to change download directory
         dirBox = wx.BoxSizer(wx.HORIZONTAL)
         self.__changeDirButton = wx.BitmapButton(panel, -1, wx.Bitmap("images/changeDirButtonIcon.png"), style=wx.NO_BORDER)
+        self.__changeDirButton.SetBackgroundColour("white")
         self.Bind(wx.EVT_BUTTON, self.__onClickChangeDirButton, self.__changeDirButton)
         dirBox.Add(self.__changeDirButton, flag=wx.ALIGN_CENTER_VERTICAL | wx.RIGHT, border=8)
 
@@ -56,6 +58,7 @@ class MainFrame(wx.Frame):
         # a meaningless icon
         optBox = wx.BoxSizer(wx.HORIZONTAL)
         prefIcon = wx.StaticBitmap(panel, -1, wx.Bitmap("images/changePrefIcon.png"))
+        prefIcon.SetBackgroundColour("white")
         optBox.Add(prefIcon, flag=wx.ALIGN_CENTER_VERTICAL | wx.RIGHT, border=8)
 
         # a combobox which includes all available stream options that are available on selected video
@@ -87,22 +90,27 @@ class MainFrame(wx.Frame):
 
         # add 5 buttons (start, skip, stop, info, remove)
         self.__startButton = wx.BitmapButton(panel, -1, wx.Bitmap("images/startButtonIcon.png"), style=wx.NO_BORDER)
+        self.__startButton.SetBackgroundColour("white")
         self.Bind(wx.EVT_BUTTON, self.__onClickStartButton, self.__startButton)
         hBoxes[4].Add(self.__startButton, flag=wx.RIGHT, border=12)
 
         self.__skipButton = wx.BitmapButton(panel, -1, wx.Bitmap("images/skipButtonIcon.png"), style=wx.NO_BORDER)
+        self.__skipButton.SetBackgroundColour("white")
         self.Bind(wx.EVT_BUTTON, self.__onClickSkipButton, self.__skipButton)
         hBoxes[4].Add(self.__skipButton, flag=wx.RIGHT, border=12)
 
         self.__stopButton = wx.BitmapButton(panel, -1, wx.Bitmap("images/stopButtonIcon.png"), style=wx.NO_BORDER)
+        self.__stopButton.SetBackgroundColour("white")
         self.Bind(wx.EVT_BUTTON, self.__onClickStopButton, self.__stopButton)
         hBoxes[4].Add(self.__stopButton, flag=wx.RIGHT, border=12)
 
         self.__infoButton = wx.BitmapButton(panel, -1, wx.Bitmap("images/infoButtonIcon.png"), style=wx.NO_BORDER)
+        self.__infoButton.SetBackgroundColour("white")
         self.Bind(wx.EVT_BUTTON, self.__onClickInfoButton, self.__infoButton)
         hBoxes[4].Add(self.__infoButton, flag=wx.RIGHT, border=12)
 
         self.__removeButton = wx.BitmapButton(panel, -1, wx.Bitmap("images/removeButtonIcon.png"), style=wx.NO_BORDER)
+        self.__removeButton.SetBackgroundColour("white")
         self.Bind(wx.EVT_BUTTON, self.__onClickRemoveButton, self.__removeButton)
         hBoxes[4].Add(self.__removeButton)
 
