@@ -1,11 +1,15 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
+import sys
+reload(sys)
+sys.setdefaultencoding("utf-8")
 
 import os
 import wx
 from addmanager import AddManager
 from downloadmanager import DownloadManager
 from info import VideoInfoDialog
+from ErrorMessage import ErrorMsg
 
 FRAME_WIDTH = 870
 FRAME_HEIGHT = 480
@@ -59,23 +63,27 @@ class MainFrame(wx.Frame):
         if os.path.exists(DEFAULT_DIR): # if the user has already set default directory, read it
             dirFile = open(DEFAULT_DIR, "r")
             defaultDir = dirFile.readline()
-        else: # otherwise, make the user set default directory
+            dirFile.close()
+
+            if not os.path.exists(defaultDir): # if saved default directory is corrupt, remove it and let user reset it
+                os.remove(DEFAULT_DIR)
+
+        if not os.path.exists(DEFAULT_DIR): # otherwise, make the user set default directory
             dialog = wx.DirDialog(None)
 
             if dialog.ShowModal() == wx.ID_OK:
-                if os.name == "nt": # setting directory for Windows
-                    defaultDir = dialog.GetPath()
+                defaultDir = dialog.GetPath()
 
+                if os.name == "nt": # setting directory for Windows
                     if not defaultDir.endswith("\\"):
                         defaultDir += "\\"
                 else: # for Linux or macOS
-                    defaultDir = dialog.GetPath()
-
                     if not defaultDir.endswith("/"):
                         defaultDir += "/"
 
                 dirFile = open(DEFAULT_DIR, "w")
                 dirFile.write(defaultDir)
+                dirFile.close()
             else: # if the user click cancel, program should be exited
                 self.Destroy()
 
@@ -212,7 +220,6 @@ class MainFrame(wx.Frame):
         self.__dm = DownloadManager(self, self.__downloadList, self.__dirText.GetValue())
         self.__dm.start()
         self.__downloading = True
-        self.__urlList = []
         self.__prefCombobox.Clear()
         self.SetStatusText("Downloading...")
 
@@ -264,26 +271,28 @@ class MainFrame(wx.Frame):
         dialog = wx.DirDialog(None, defaultPath=self.__dirText.GetValue())
 
         if dialog.ShowModal() == wx.ID_OK:
+            defaultDir = dialog.GetPath()
+
             if os.name == "nt": # setting directory for Windows
-                defaultDir = dialog.GetPath()
                 self.__dirText.SetValue(defaultDir + "\\" \
                                         if not defaultDir.endswith("\\") else defaultDir)
             else: # for Linux or macOS
-                defaultDir = dialog.GetPath()
                 self.__dirText.SetValue(defaultDir + "/" \
                                         if not defaultDir.endswith("/") else defaultDir)
 
             dirFile = open(DEFAULT_DIR, "w")
             dirFile.write(self.__dirText.GetValue())
+            dirFile.close()
 
         dialog.Destroy()
 
         # event handler for selecting an item -> update PrefCombobox list
     def __onSelectItem(self, event):
-        selectedItem = self.__downloadList[self.__addedList.GetFocusedItem()]
-        self.__prefCombobox.Clear()
-        self.__prefCombobox.AppendItems(selectedItem.options)
-        self.__prefCombobox.SetValue(selectedItem.selectedExt)
+        if self.__addedList.GetSelectedItemCount() == 1:
+            selectedItem = self.__downloadList[self.__addedList.GetFocusedItem()]
+            self.__prefCombobox.Clear()
+            self.__prefCombobox.AppendItems(selectedItem.options)
+            self.__prefCombobox.SetValue(selectedItem.selectedExt)
 
         # event handler for selecting an option in PrefCombobox -> update selected item's selected extension
     def __onSelectOption(self, event):
@@ -305,6 +314,8 @@ class MainFrame(wx.Frame):
             self.__addedList.SetItem(num_items, 4, item.filesize)
 
             self.SetStatusText(item.video.title + " has been added.")
+        else:
+            ErrorMsg(item.video.title + "\n영상은 이미 다운로드 목록에 있으므로 추가할 수 없습니다.").start()
 
         # update status of downloading item
     def updateStatus(self, item, rate, progress, eta):

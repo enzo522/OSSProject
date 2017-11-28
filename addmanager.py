@@ -1,5 +1,8 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
+import sys
+reload(sys)
+sys.setdefaultencoding("utf-8")
 
 import threading
 import pafy
@@ -27,8 +30,8 @@ class AddManager(threading.Thread):
                     default = video.getbest()  # default selected options are the best ones that current video has
 
                     with self._lock:
-                        self.__frame.addToDownloadList(Item(video, default.mediatype + " / " + default.extension + " / " + \
-                                                     default.resolution))
+                        self.__frame.addToDownloadList(Item(video, default.mediatype + " / " + default.extension + \
+                                                            " / " + default.resolution))
 
                     sleep(WAIT_TIME)
 

@@ -1,5 +1,8 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
+import sys
+reload(sys)
+sys.setdefaultencoding("utf-8")
 
 '''모듈 불러오기'''
 import logging
@@ -16,6 +19,7 @@ else:
 import youtube_dl
 import wx
 import threading
+from ErrorMessage import ErrorMsg
 
 '''선언한 모듈(from)에서 필요한 것(import)만 가져온다.'''
 import g
@@ -46,7 +50,7 @@ class YtdlPafy(BasePafy):
                 self._ydl_info = ydl.extract_info(self.videoid, download=False)
             # Turn into an IOError since that is what pafy previously raised
             except youtube_dl.utils.DownloadError as e: #에러 종류
-                ErrorMsg(self.videoid).start()
+                ErrorMsg(self.videoid + "\n에 해당하는 YouTube 영상이 없습니다.").start()
                 return False
 
         if self.callback:
@@ -133,11 +137,3 @@ class YtdlStream(BaseStream):
 
         # Fallback
         return super(YtdlStream, self).get_filesize()
-
-class ErrorMsg(threading.Thread):
-    def __init__(self, videoid):
-        super(ErrorMsg, self).__init__()
-        self.msg = wx.MessageDialog(None, videoid + "\n에 해당하는 유튜브 영상이 존재하지 않습니다.", "Error", wx.OK | wx.ICON_ERROR)
-
-    def run(self):
-        self.msg.ShowModal()
