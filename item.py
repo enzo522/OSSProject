@@ -1,9 +1,3 @@
-#!/usr/bin/python
-# -*- coding: utf-8 -*-
-import sys
-reload(sys)
-sys.setdefaultencoding("utf-8")
-
 # Item class to encapsulate video and selected options (media type, extension, resolution)
 class Item():
     def __init__(self, video, selectedExt):

@@ -17,8 +17,6 @@ else:
     uni = unicode
 
 import youtube_dl
-import wx
-import threading
 from ErrorMessage import ErrorMsg
 
 '''선언한 모듈(from)에서 필요한 것(import)만 가져온다.'''

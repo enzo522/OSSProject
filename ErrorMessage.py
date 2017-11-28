@@ -1,13 +1,8 @@
-#!/usr/bin/python
-# -*- coding: utf-8 -*-
-import sys
-reload(sys)
-sys.setdefaultencoding("utf-8")
-
 import threading
 import wx
 
 
+# ErrorMsg class to show error dialog
 class ErrorMsg(threading.Thread):
     def __init__(self, message):
         super(ErrorMsg, self).__init__()
