@@ -124,7 +124,6 @@ class MainFrame(wx.Frame):
         self.GetStatusBar().SetBackgroundColour(BACKGROUND_COLOR)
         self.SetStatusText("")
 
-        self.__urlList = []
         self.__downloadList = []
         self.__downloading = False
 
@@ -172,9 +171,7 @@ class MainFrame(wx.Frame):
             urls = []
 
             for i in range(self.__sourceText.GetNumberOfLines()):
-                if self.__sourceText.GetLineText(i) != "" and\
-                        self.__sourceText.GetLineText(i) not in self.__urlList: # skip blank and duplicated url
-                    self.__urlList.append(self.__sourceText.GetLineText(i))
+                if self.__sourceText.GetLineText(i) != "": # skip blank and duplicated url
                     urls.append(self.__sourceText.GetLineText(i))
 
             self.__am = AddManager(self, urls)
@@ -259,7 +256,7 @@ class MainFrame(wx.Frame):
 
         # add item to list
     def addToDownloadList(self, item):
-        if item not in self.__downloadList:
+        if item.video.title not in [ d.video.title for d in self.__downloadList ]:
             self.__downloadList.append(item)
             num_items = self.__addedList.GetItemCount()
 
