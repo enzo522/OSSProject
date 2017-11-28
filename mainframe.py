@@ -4,12 +4,12 @@ import sys
 reload(sys)
 sys.setdefaultencoding("utf-8")
 
+import threading
 import os
 import wx
 from addmanager import AddManager
 from downloadmanager import DownloadManager
 from info import VideoInfoDialog
-from ErrorMessage import ErrorMsg
 
 FRAME_WIDTH = 870
 FRAME_HEIGHT = 480
@@ -37,6 +37,7 @@ class MainFrame(wx.Frame):
         self.__addButton = wx.BitmapButton(panel, -1, wx.Bitmap("images/addButtonIcon.png"), style=wx.NO_BORDER)
         self.__addButton.SetBackgroundColour(BACKGROUND_COLOR)
         self.Bind(wx.EVT_BUTTON, self.__onClickAddButton, self.__addButton)
+        self.Bind(wx.EVT_UPDATE_UI, self.__onCheckCanAdd, self.__addButton)
 
         # labelGridSizer includes attributes that place on the top
         labelGridSizer = wx.GridSizer(cols=3)
@@ -56,6 +57,7 @@ class MainFrame(wx.Frame):
         self.__changeDirButton = wx.BitmapButton(panel, -1, wx.Bitmap("images/changeDirButtonIcon.png"), style=wx.NO_BORDER)
         self.__changeDirButton.SetBackgroundColour(BACKGROUND_COLOR)
         self.Bind(wx.EVT_BUTTON, self.__onClickChangeDirButton, self.__changeDirButton)
+        self.Bind(wx.EVT_UPDATE_UI, self.__onCheckCanChangeDir, self.__changeDirButton)
         dirBox.Add(self.__changeDirButton, flag=wx.ALIGN_CENTER_VERTICAL | wx.RIGHT, border=8)
 
         defaultDir = ""
@@ -67,8 +69,8 @@ class MainFrame(wx.Frame):
 
             if not os.path.exists(defaultDir): # if saved default directory is corrupt, remove it and let user reset it
                 os.remove(DEFAULT_DIR)
-
-        if not os.path.exists(DEFAULT_DIR): # otherwise, make the user set default directory
+                os.execl(sys.executable, sys.executable, *sys.argv)
+        else: # otherwise, make the user set default directory
             dialog = wx.DirDialog(None)
 
             if dialog.ShowModal() == wx.ID_OK:
@@ -102,6 +104,7 @@ class MainFrame(wx.Frame):
         # a combobox which includes all available stream options that are available on selected video
         self.__prefCombobox = wx.ComboBox(panel, size=(200, -1), style=wx.CB_DROPDOWN | wx.TE_READONLY)
         self.Bind(wx.EVT_COMBOBOX, self.__onSelectOption, self.__prefCombobox)
+        self.Bind(wx.EVT_UPDATE_UI, self.__onCheckCanChangeOption, self.__prefCombobox)
         optBox.Add(self.__prefCombobox)
 
         # optionGridSizer includes attributes which place on the center
@@ -130,26 +133,31 @@ class MainFrame(wx.Frame):
         self.__startButton = wx.BitmapButton(panel, -1, wx.Bitmap("images/startButtonIcon.png"), style=wx.NO_BORDER)
         self.__startButton.SetBackgroundColour(BACKGROUND_COLOR)
         self.Bind(wx.EVT_BUTTON, self.__onClickStartButton, self.__startButton)
+        self.Bind(wx.EVT_UPDATE_UI, self.__onCheckCanStart, self.__startButton)
         hBoxes[4].Add(self.__startButton, flag=wx.RIGHT, border=12)
 
         self.__skipButton = wx.BitmapButton(panel, -1, wx.Bitmap("images/skipButtonIcon.png"), style=wx.NO_BORDER)
         self.__skipButton.SetBackgroundColour(BACKGROUND_COLOR)
         self.Bind(wx.EVT_BUTTON, self.__onClickSkipButton, self.__skipButton)
+        self.Bind(wx.EVT_UPDATE_UI, self.__onCheckCanSkipOrStop, self.__skipButton)
         hBoxes[4].Add(self.__skipButton, flag=wx.RIGHT, border=12)
 
         self.__stopButton = wx.BitmapButton(panel, -1, wx.Bitmap("images/stopButtonIcon.png"), style=wx.NO_BORDER)
         self.__stopButton.SetBackgroundColour(BACKGROUND_COLOR)
         self.Bind(wx.EVT_BUTTON, self.__onClickStopButton, self.__stopButton)
+        self.Bind(wx.EVT_UPDATE_UI, self.__onCheckCanSkipOrStop, self.__stopButton)
         hBoxes[4].Add(self.__stopButton, flag=wx.RIGHT, border=12)
 
         self.__infoButton = wx.BitmapButton(panel, -1, wx.Bitmap("images/infoButtonIcon.png"), style=wx.NO_BORDER)
         self.__infoButton.SetBackgroundColour(BACKGROUND_COLOR)
         self.Bind(wx.EVT_BUTTON, self.__onClickInfoButton, self.__infoButton)
+        self.Bind(wx.EVT_UPDATE_UI, self.__onCheckCanShowInfo, self.__infoButton)
         hBoxes[4].Add(self.__infoButton, flag=wx.RIGHT, border=12)
 
         self.__removeButton = wx.BitmapButton(panel, -1, wx.Bitmap("images/removeButtonIcon.png"), style=wx.NO_BORDER)
         self.__removeButton.SetBackgroundColour(BACKGROUND_COLOR)
         self.Bind(wx.EVT_BUTTON, self.__onClickRemoveButton, self.__removeButton)
+        self.Bind(wx.EVT_UPDATE_UI, self.__onCheckCanRemove, self.__removeButton)
         hBoxes[4].Add(self.__removeButton)
 
         vBox.Add(hBoxes[4], flag=wx.ALIGN_RIGHT | wx.RIGHT, border=10)
@@ -167,7 +175,6 @@ class MainFrame(wx.Frame):
         self.__am = None # AddManager for adding urls
         self.__dm = None # DownloadManager for downloading videos
 
-        self.Bind(wx.EVT_UPDATE_UI, self.__UIUpdater)
         self.Center()
         self.Show()
 
@@ -183,24 +190,36 @@ class MainFrame(wx.Frame):
 
         self.Destroy()
 
-        # UI updater to enable / disable buttons properly
-    def __UIUpdater(self, event):
-        self.__addButton.Enable(not self.__downloading and self.__sourceText.GetValue() != "" and \
-                                True if self.__am is None else not self.__am.isAlive())
-        self.__changeDirButton.Enable(not self.__downloading)
-        self.__prefCombobox.Enable(not self.__downloading and self.__addedList.SelectedItemCount == 1)
+        # UI updater for AddButton
+    def __onCheckCanAdd(self, event):
+        event.Enable(not self.__downloading and self.__sourceText.GetValue() != "" and \
+                     (True if self.__am is None else not self.__am.isAlive()))
 
-        if self.__addedList.SelectedItemCount != 1:
-            self.__prefCombobox.Clear()
+        # UI updater for ChangeDirButton
+    def __onCheckCanChangeDir(self, event):
+        event.Enable(not self.__downloading)
 
-        self.__startButton.Enable(not self.__downloading and len(self.__downloadList) > 0 and \
-                                  self.__am is not None and not self.__am.isAlive())
-        self.__skipButton.Enable(self.__downloading)
-        self.__stopButton.Enable(self.__downloading)
+        # UI updater for PrefCombobox
+    def __onCheckCanChangeOption(self, event):
+        event.Enable(not self.__downloading and self.__addedList.GetSelectedItemCount() == 1)
 
-        self.__infoButton.Enable(self.__addedList.SelectedItemCount > 0)
-        self.__removeButton.Enable(not self.__downloading and self.__addedList.SelectedItemCount > 0 \
-                                   and self.__am is not None and not self.__am.isAlive())
+        # UI updater for StartButton
+    def __onCheckCanStart(self, event):
+        event.Enable(not self.__downloading and len(self.__downloadList) > 0 and \
+                     self.__am is not None and not self.__am.isAlive())
+
+        # UI updater for SkipButton and StopButton
+    def __onCheckCanSkipOrStop(self, event):
+        event.Enable(self.__downloading)
+
+        # UI updater for InfoButton
+    def __onCheckCanShowInfo(self, event):
+        event.Enable(self.__addedList.GetSelectedItemCount() > 0)
+
+        # UI updater for RemoveButton
+    def __onCheckCanRemove(self, event):
+        event.Enable(not self.__downloading and self.__addedList.GetSelectedItemCount() > 0 and \
+                     self.__am is not None and not self.__am.isAlive())
 
         # event handler for AddButton
     def __onClickAddButton(self, event):
@@ -288,9 +307,10 @@ class MainFrame(wx.Frame):
 
         # event handler for selecting an item -> update PrefCombobox list
     def __onSelectItem(self, event):
+        self.__prefCombobox.Clear()
+
         if self.__addedList.GetSelectedItemCount() == 1:
             selectedItem = self.__downloadList[self.__addedList.GetFocusedItem()]
-            self.__prefCombobox.Clear()
             self.__prefCombobox.AppendItems(selectedItem.options)
             self.__prefCombobox.SetValue(selectedItem.selectedExt)
 
@@ -315,7 +335,7 @@ class MainFrame(wx.Frame):
 
             self.SetStatusText(item.video.title + " has been added.")
         else:
-            ErrorMsg(item.video.title + "\n영상은 이미 다운로드 목록에 있으므로 추가할 수 없습니다.").start()
+            self.SetStatusText(item.video.title + " is already in download list.")
 
         # update status of downloading item
     def updateStatus(self, item, rate, progress, eta):

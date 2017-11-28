@@ -17,7 +17,7 @@ else:
     uni = unicode
 
 import youtube_dl
-from ErrorMessage import ErrorMsg
+from errormessage import ErrorMsg
 
 '''선언한 모듈(from)에서 필요한 것(import)만 가져온다.'''
 import g
@@ -48,7 +48,7 @@ class YtdlPafy(BasePafy):
                 self._ydl_info = ydl.extract_info(self.videoid, download=False)
             # Turn into an IOError since that is what pafy previously raised
             except youtube_dl.utils.DownloadError as e: #에러 종류
-                ErrorMsg(self.videoid + "\n에 해당하는 YouTube 영상이 없습니다.").start()
+                ErrorMsg(self.videoid + "\n에 해당하는 YouTube 영상이 없습니다.")
                 return False
 
         if self.callback:
