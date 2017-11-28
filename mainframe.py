@@ -1,6 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
+import os
 import wx
 from addmanager import AddManager
 from downloadmanager import DownloadManager
@@ -9,6 +10,7 @@ from info import VideoInfoDialog
 FRAME_WIDTH = 870
 FRAME_HEIGHT = 480
 BACKGROUND_COLOR = "white"
+DEFAULT_DIR = "default.dir"
 
 
 # MainFrame class to handle UI
@@ -52,8 +54,23 @@ class MainFrame(wx.Frame):
         self.Bind(wx.EVT_BUTTON, self.__onClickChangeDirButton, self.__changeDirButton)
         dirBox.Add(self.__changeDirButton, flag=wx.ALIGN_CENTER_VERTICAL | wx.RIGHT, border=8)
 
+        defaultDir = ""
+
+        if os.path.exists(DEFAULT_DIR):
+            dirFile = open(DEFAULT_DIR, "r")
+            defaultDir = dirFile.readline()
+        else:
+            dialog = wx.DirDialog(None)
+
+            if dialog.ShowModal() == wx.ID_OK:
+                dirFile = open(DEFAULT_DIR, "w")
+                defaultDir = dialog.GetPath() + "/"
+                dirFile.write(defaultDir)
+
+            dialog.Destroy()
+
         # this text shows currently selected download directory
-        self.__dirText = wx.TextCtrl(panel, value="/Users/KimSungsoo/Downloads/", size=(300, -1), style=wx.TE_READONLY)
+        self.__dirText = wx.TextCtrl(panel, value=defaultDir, size=(300, -1), style=wx.TE_READONLY)
         dirBox.Add(self.__dirText)
 
         # a meaningless icon
@@ -235,17 +252,18 @@ class MainFrame(wx.Frame):
         dialog = wx.DirDialog(None, defaultPath=self.__dirText.GetValue())
 
         if dialog.ShowModal() == wx.ID_OK:
+            dirFile = open(DEFAULT_DIR, "w")
             self.__dirText.SetValue(dialog.GetPath() + "/")
+            dirFile.write(self.__dirText.GetValue())
 
         dialog.Destroy()
 
         # event handler for selecting an item -> update PrefCombobox list
     def __onSelectItem(self, event):
-        if self.__addedList.SelectedItemCount == 1:
-            selectedItem = self.__downloadList[self.__addedList.GetFocusedItem()]
-            self.__prefCombobox.Clear()
-            self.__prefCombobox.AppendItems(selectedItem.options)
-            self.__prefCombobox.SetValue(selectedItem.selectedExt)
+        selectedItem = self.__downloadList[self.__addedList.GetFocusedItem()]
+        self.__prefCombobox.Clear()
+        self.__prefCombobox.AppendItems(selectedItem.options)
+        self.__prefCombobox.SetValue(selectedItem.selectedExt)
 
         # event handler for selecting an option in PrefCombobox -> update selected item's selected extension
     def __onSelectOption(self, event):
