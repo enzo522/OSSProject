@@ -64,9 +64,15 @@ class MainFrame(wx.Frame):
 
             if dialog.ShowModal() == wx.ID_OK:
                 if os.name == "nt": # setting directory for Windows
-                    defaultDir = dialog.GetPath() + "\\"
+                    defaultDir = dialog.GetPath()
+
+                    if not defaultDir.endswith("\\"):
+                        defaultDir += "\\"
                 else: # for Linux or macOS
-                    defaultDir = dialog.GetPath() + "/"
+                    defaultDir = dialog.GetPath()
+
+                    if not defaultDir.endswith("/"):
+                        defaultDir += "/"
 
                 dirFile = open(DEFAULT_DIR, "w")
                 dirFile.write(defaultDir)
@@ -259,9 +265,13 @@ class MainFrame(wx.Frame):
 
         if dialog.ShowModal() == wx.ID_OK:
             if os.name == "nt": # setting directory for Windows
-                self.__dirText.SetValue(dialog.GetPath() + "\\")
+                defaultDir = dialog.GetPath()
+                self.__dirText.SetValue(defaultDir + "\\" \
+                                        if not defaultDir.endswith("\\") else defaultDir)
             else: # for Linux or macOS
-                self.__dirText.SetValue(dialog.GetPath() + "/")
+                defaultDir = dialog.GetPath()
+                self.__dirText.SetValue(defaultDir + "/" \
+                                        if not defaultDir.endswith("/") else defaultDir)
 
             dirFile = open(DEFAULT_DIR, "w")
             dirFile.write(self.__dirText.GetValue())
