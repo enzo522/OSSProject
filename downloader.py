@@ -42,6 +42,3 @@ class Downloader(threading.Thread):
     def stop(self):  # when the user clicked skip / stop button, current download should be canceled
         if self.__stream:
             self.__stream.cancel()
-
-    def join(self, timeout=None):
-        super(Downloader, self).join(timeout)

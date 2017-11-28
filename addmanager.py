@@ -34,6 +34,3 @@ class AddManager(threading.Thread):
 
     def stop(self):
         self.__isRunning = False
-
-    def join(self, timeout=None):
-        super(AddManager, self).join(timeout)

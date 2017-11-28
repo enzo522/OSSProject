@@ -51,11 +51,8 @@ class DownloadManager(threading.Thread):
         for t in self.__threadList:
             if t.isAlive():
                 t.stop()
-                t.join()
+                t.join(2)
 
     def stop(self):  # cancel current downloads and abort further ones
         self.skip()
         self.__abort = True
-
-    def join(self, timeout=None):
-        super(DownloadManager, self).join(timeout)

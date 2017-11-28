@@ -8,6 +8,7 @@ from info import VideoInfoDialog
 
 FRAME_WIDTH = 870
 FRAME_HEIGHT = 480
+BACKGROUND_COLOR = "white"
 
 
 # MainFrame class to handle UI
@@ -16,7 +17,7 @@ class MainFrame(wx.Frame):
         wx.Frame.__init__(self, None, -1, title="YouTube Downloader", size=(FRAME_WIDTH, FRAME_HEIGHT), \
                           style=wx.DEFAULT_FRAME_STYLE)
         self.SetMinSize((FRAME_WIDTH, FRAME_HEIGHT))
-        self.SetBackgroundColour("white")
+        self.SetBackgroundColour(BACKGROUND_COLOR)
         self.Bind(wx.EVT_CLOSE, self.__onClose)
 
         panel = wx.Panel(self)
@@ -28,7 +29,7 @@ class MainFrame(wx.Frame):
 
         sourceLabel = wx.StaticText(panel, label="URLs:")
         self.__addButton = wx.BitmapButton(panel, -1, wx.Bitmap("images/addButtonIcon.png"), style=wx.NO_BORDER)
-        self.__addButton.SetBackgroundColour("white")
+        self.__addButton.SetBackgroundColour(BACKGROUND_COLOR)
         self.Bind(wx.EVT_BUTTON, self.__onClickAddButton, self.__addButton)
 
         # labelGridSizer includes attributes that place on the top
@@ -47,7 +48,7 @@ class MainFrame(wx.Frame):
         # a button to change download directory
         dirBox = wx.BoxSizer(wx.HORIZONTAL)
         self.__changeDirButton = wx.BitmapButton(panel, -1, wx.Bitmap("images/changeDirButtonIcon.png"), style=wx.NO_BORDER)
-        self.__changeDirButton.SetBackgroundColour("white")
+        self.__changeDirButton.SetBackgroundColour(BACKGROUND_COLOR)
         self.Bind(wx.EVT_BUTTON, self.__onClickChangeDirButton, self.__changeDirButton)
         dirBox.Add(self.__changeDirButton, flag=wx.ALIGN_CENTER_VERTICAL | wx.RIGHT, border=8)
 
@@ -58,7 +59,7 @@ class MainFrame(wx.Frame):
         # a meaningless icon
         optBox = wx.BoxSizer(wx.HORIZONTAL)
         prefIcon = wx.StaticBitmap(panel, -1, wx.Bitmap("images/changePrefIcon.png"))
-        prefIcon.SetBackgroundColour("white")
+        prefIcon.SetBackgroundColour(BACKGROUND_COLOR)
         optBox.Add(prefIcon, flag=wx.ALIGN_CENTER_VERTICAL | wx.RIGHT, border=8)
 
         # a combobox which includes all available stream options that are available on selected video
@@ -90,27 +91,27 @@ class MainFrame(wx.Frame):
 
         # add 5 buttons (start, skip, stop, info, remove)
         self.__startButton = wx.BitmapButton(panel, -1, wx.Bitmap("images/startButtonIcon.png"), style=wx.NO_BORDER)
-        self.__startButton.SetBackgroundColour("white")
+        self.__startButton.SetBackgroundColour(BACKGROUND_COLOR)
         self.Bind(wx.EVT_BUTTON, self.__onClickStartButton, self.__startButton)
         hBoxes[4].Add(self.__startButton, flag=wx.RIGHT, border=12)
 
         self.__skipButton = wx.BitmapButton(panel, -1, wx.Bitmap("images/skipButtonIcon.png"), style=wx.NO_BORDER)
-        self.__skipButton.SetBackgroundColour("white")
+        self.__skipButton.SetBackgroundColour(BACKGROUND_COLOR)
         self.Bind(wx.EVT_BUTTON, self.__onClickSkipButton, self.__skipButton)
         hBoxes[4].Add(self.__skipButton, flag=wx.RIGHT, border=12)
 
         self.__stopButton = wx.BitmapButton(panel, -1, wx.Bitmap("images/stopButtonIcon.png"), style=wx.NO_BORDER)
-        self.__stopButton.SetBackgroundColour("white")
+        self.__stopButton.SetBackgroundColour(BACKGROUND_COLOR)
         self.Bind(wx.EVT_BUTTON, self.__onClickStopButton, self.__stopButton)
         hBoxes[4].Add(self.__stopButton, flag=wx.RIGHT, border=12)
 
         self.__infoButton = wx.BitmapButton(panel, -1, wx.Bitmap("images/infoButtonIcon.png"), style=wx.NO_BORDER)
-        self.__infoButton.SetBackgroundColour("white")
+        self.__infoButton.SetBackgroundColour(BACKGROUND_COLOR)
         self.Bind(wx.EVT_BUTTON, self.__onClickInfoButton, self.__infoButton)
         hBoxes[4].Add(self.__infoButton, flag=wx.RIGHT, border=12)
 
         self.__removeButton = wx.BitmapButton(panel, -1, wx.Bitmap("images/removeButtonIcon.png"), style=wx.NO_BORDER)
-        self.__removeButton.SetBackgroundColour("white")
+        self.__removeButton.SetBackgroundColour(BACKGROUND_COLOR)
         self.Bind(wx.EVT_BUTTON, self.__onClickRemoveButton, self.__removeButton)
         hBoxes[4].Add(self.__removeButton)
 
@@ -120,7 +121,7 @@ class MainFrame(wx.Frame):
 
         # status bar to show events
         self.CreateStatusBar()
-        self.GetStatusBar().SetBackgroundColour("white")
+        self.GetStatusBar().SetBackgroundColour(BACKGROUND_COLOR)
         self.SetStatusText("")
 
         self.__urlList = []
