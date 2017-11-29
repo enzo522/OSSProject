@@ -589,6 +589,10 @@ class BaseStream(object):
             filename = self.generate_filename(meta=meta, max_length=256-len('.temp'))
 
         filepath = os.path.join(savedir, filename)
+
+        if os.path.exists(filepath): # if the user has already downloaded this video, skip downloading
+            return
+
         temp_filepath = filepath + ".temp"
 
         status_string = ('[{:.1%}] [{:4.0f} KB/s] [{:.0f} secs]')

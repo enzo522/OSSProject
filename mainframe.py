@@ -4,7 +4,6 @@ import sys
 reload(sys)
 sys.setdefaultencoding("utf-8")
 
-import threading
 import os
 import wx
 from addmanager import AddManager
@@ -69,7 +68,7 @@ class MainFrame(wx.Frame):
 
             if not os.path.exists(defaultDir): # if saved default directory is corrupt, remove it and let user reset it
                 os.remove(DEFAULT_DIR)
-                os.execl(sys.executable, sys.executable, *sys.argv)
+                os.execl(sys.executable, sys.executable, *sys.argv) # restart this program
         else: # otherwise, make the user set default directory
             dialog = wx.DirDialog(None)
 

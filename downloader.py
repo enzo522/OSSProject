@@ -5,7 +5,6 @@ reload(sys)
 sys.setdefaultencoding("utf-8")
 
 import threading
-import os
 
 
 # Downloader class to download a video.
@@ -16,7 +15,7 @@ class Downloader(threading.Thread):
         self.__item = item
         self.__stream = None
         self.__abort = abort
-        self.__filename = downloadPath + self.__item.video.title + "."
+        self.__downloadPath = downloadPath
         self._lock = threading.RLock()
 
         for s in self.__item.video.allstreams:  # find a stream which satisfies selected options
@@ -35,9 +34,8 @@ class Downloader(threading.Thread):
             self.__frame.updateStatus(self.__item, progress, rate, eta)
 
     def run(self):  # if the user clicked stop button, the downloader shouldn't start download
-        if not self.__abort:  # otherwise, check whether the user has already downloaded this video
-            if not os.path.exists(self.__filename + self.__stream.extension):
-                self.__stream.download(filepath=self.__filename + self.__stream.extension, quiet=True)
+        if self.__stream is not None and not self.__abort:
+            self.__stream.download(filepath=self.__downloadPath, quiet=True)
 
         with self._lock:
             self.__frame.removeFinishedItem(self.__item)
