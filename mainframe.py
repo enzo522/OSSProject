@@ -232,7 +232,7 @@ class MainFrame(wx.Frame):
             urls = []
 
             for i in range(self.__sourceText.GetNumberOfLines()):
-                if self.__sourceText.GetLineText(i) != "": # skip blank and duplicated url
+                if self.__sourceText.GetLineText(i) != "": # skip blank
                     urls.append(self.__sourceText.GetLineText(i))
 
             self.__am = AddManager(self, urls)
@@ -327,7 +327,7 @@ class MainFrame(wx.Frame):
         self.__addedList.SetItem(selectedItem, 4, self.__downloadList[selectedItem].filesize)
 
         # add item to list
-    def addToDownloadList(self, item):
+    def addToDownloadList(self, item): # if video is already in download list, skip it
         if item.video.title not in [ d.video.title for d in self.__downloadList ]:
             self.__downloadList.append(item)
             num_items = self.__addedList.GetItemCount()

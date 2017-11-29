@@ -20,8 +20,8 @@ class Item():
             if self.selectedExt == self.options[i]:
                 orgFilesize = self.__sizes[i]
 
-        self.filesize = round(orgFilesize / 1024 ** 2, 1).__str__() + "MB" if orgFilesize > 1024 ** 2 else \
-            round(orgFilesize / 1024, 1).__str__() + "KB" \
+        self.filesize = (round(orgFilesize / 1024 ** 2, 1).__str__() + "MB" if orgFilesize > 1024 ** 2 else \
+            round(orgFilesize / 1024, 1).__str__() + "KB") \
             if orgFilesize is not None else ""
 
     def setSelectedExt(self, newExt):
