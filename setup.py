@@ -8,8 +8,7 @@ if os.name == "nt":
 
     platform_options = {
         "windows": [ {
-            "script": "__main__.py",
-            "dest_base": "ytdl"
+            "script": "__main__.py"
         } ],
         "zipfile": None,
         "setup_requires": ["py2exe"],

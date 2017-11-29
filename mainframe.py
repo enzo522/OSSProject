@@ -4,6 +4,12 @@ import sys
 reload(sys)
 sys.setdefaultencoding("utf-8")
 
+def resource_path(relative_path):
+    if hasattr(sys, '_MEIPASS'):
+        return os.path.join(sys._MEIPASS, relative_path)
+
+    return os.path.join(os.path.abspath("."), relative_path)
+
 import os
 import wx
 from addmanager import AddManager
@@ -33,7 +39,7 @@ class MainFrame(wx.Frame):
             hBoxes.append(wx.BoxSizer(wx.HORIZONTAL))
 
         sourceLabel = wx.StaticText(panel, label="URLs:")
-        self.__addButton = wx.BitmapButton(panel, -1, wx.Bitmap("images/addButtonIcon.png"), style=wx.NO_BORDER)
+        self.__addButton = wx.BitmapButton(panel, -1, wx.Bitmap(resource_path("images/addButtonIcon.png")), style=wx.NO_BORDER)
         self.__addButton.SetBackgroundColour(BACKGROUND_COLOR)
         self.Bind(wx.EVT_BUTTON, self.__onClickAddButton, self.__addButton)
         self.Bind(wx.EVT_UPDATE_UI, self.__onCheckCanAdd, self.__addButton)
@@ -53,7 +59,7 @@ class MainFrame(wx.Frame):
 
         # a button to change download directory
         dirBox = wx.BoxSizer(wx.HORIZONTAL)
-        self.__changeDirButton = wx.BitmapButton(panel, -1, wx.Bitmap("images/changeDirButtonIcon.png"), style=wx.NO_BORDER)
+        self.__changeDirButton = wx.BitmapButton(panel, -1, wx.Bitmap(resource_path("images/changeDirButtonIcon.png")), style=wx.NO_BORDER)
         self.__changeDirButton.SetBackgroundColour(BACKGROUND_COLOR)
         self.Bind(wx.EVT_BUTTON, self.__onClickChangeDirButton, self.__changeDirButton)
         self.Bind(wx.EVT_UPDATE_UI, self.__onCheckCanChangeDir, self.__changeDirButton)
@@ -96,7 +102,7 @@ class MainFrame(wx.Frame):
 
         # a meaningless icon
         optBox = wx.BoxSizer(wx.HORIZONTAL)
-        prefIcon = wx.StaticBitmap(panel, -1, wx.Bitmap("images/changePrefIcon.png"))
+        prefIcon = wx.StaticBitmap(panel, -1, wx.Bitmap(resource_path("images/changePrefIcon.png")))
         prefIcon.SetBackgroundColour(BACKGROUND_COLOR)
         optBox.Add(prefIcon, flag=wx.ALIGN_CENTER_VERTICAL | wx.RIGHT, border=8)
 
@@ -129,31 +135,31 @@ class MainFrame(wx.Frame):
         vBox.Add((-1, 10))
 
         # add 5 buttons (start, skip, stop, info, remove)
-        self.__startButton = wx.BitmapButton(panel, -1, wx.Bitmap("images/startButtonIcon.png"), style=wx.NO_BORDER)
+        self.__startButton = wx.BitmapButton(panel, -1, wx.Bitmap(resource_path("images/startButtonIcon.png")), style=wx.NO_BORDER)
         self.__startButton.SetBackgroundColour(BACKGROUND_COLOR)
         self.Bind(wx.EVT_BUTTON, self.__onClickStartButton, self.__startButton)
         self.Bind(wx.EVT_UPDATE_UI, self.__onCheckCanStart, self.__startButton)
         hBoxes[4].Add(self.__startButton, flag=wx.RIGHT, border=12)
 
-        self.__skipButton = wx.BitmapButton(panel, -1, wx.Bitmap("images/skipButtonIcon.png"), style=wx.NO_BORDER)
+        self.__skipButton = wx.BitmapButton(panel, -1, wx.Bitmap(resource_path("images/skipButtonIcon.png")), style=wx.NO_BORDER)
         self.__skipButton.SetBackgroundColour(BACKGROUND_COLOR)
         self.Bind(wx.EVT_BUTTON, self.__onClickSkipButton, self.__skipButton)
         self.Bind(wx.EVT_UPDATE_UI, self.__onCheckCanSkipOrStop, self.__skipButton)
         hBoxes[4].Add(self.__skipButton, flag=wx.RIGHT, border=12)
 
-        self.__stopButton = wx.BitmapButton(panel, -1, wx.Bitmap("images/stopButtonIcon.png"), style=wx.NO_BORDER)
+        self.__stopButton = wx.BitmapButton(panel, -1, wx.Bitmap(resource_path("images/stopButtonIcon.png")), style=wx.NO_BORDER)
         self.__stopButton.SetBackgroundColour(BACKGROUND_COLOR)
         self.Bind(wx.EVT_BUTTON, self.__onClickStopButton, self.__stopButton)
         self.Bind(wx.EVT_UPDATE_UI, self.__onCheckCanSkipOrStop, self.__stopButton)
         hBoxes[4].Add(self.__stopButton, flag=wx.RIGHT, border=12)
 
-        self.__infoButton = wx.BitmapButton(panel, -1, wx.Bitmap("images/infoButtonIcon.png"), style=wx.NO_BORDER)
+        self.__infoButton = wx.BitmapButton(panel, -1, wx.Bitmap(resource_path("images/infoButtonIcon.png")), style=wx.NO_BORDER)
         self.__infoButton.SetBackgroundColour(BACKGROUND_COLOR)
         self.Bind(wx.EVT_BUTTON, self.__onClickInfoButton, self.__infoButton)
         self.Bind(wx.EVT_UPDATE_UI, self.__onCheckCanShowInfo, self.__infoButton)
         hBoxes[4].Add(self.__infoButton, flag=wx.RIGHT, border=12)
 
-        self.__removeButton = wx.BitmapButton(panel, -1, wx.Bitmap("images/removeButtonIcon.png"), style=wx.NO_BORDER)
+        self.__removeButton = wx.BitmapButton(panel, -1, wx.Bitmap(resource_path("images/removeButtonIcon.png")), style=wx.NO_BORDER)
         self.__removeButton.SetBackgroundColour(BACKGROUND_COLOR)
         self.Bind(wx.EVT_BUTTON, self.__onClickRemoveButton, self.__removeButton)
         self.Bind(wx.EVT_UPDATE_UI, self.__onCheckCanRemove, self.__removeButton)
