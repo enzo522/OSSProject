@@ -10,5 +10,5 @@ class ErrorMsg:
         if self.msg.ShowModal() == wx.ID_OK:
             self.__onClose()
 
-    def __onClose(self, event):
+    def __onClose(self):
         self.msg.Destroy()
