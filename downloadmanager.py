@@ -60,3 +60,4 @@ class DownloadManager(threading.Thread):
     def stop(self, index):  # cancel current downloads and abort further ones
         if index < len(self.__threadList):
             self.__threadList[index].stop()
+            sleep(WAIT_TIME)

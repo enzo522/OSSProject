@@ -244,16 +244,15 @@ class MainFrame(wx.Frame):
 
         # event handler for AddButton
     def __onClickAddButton(self, event):
-        if self.__sourceText.GetValue():
-            urls = []
+        urls = []
 
-            for i in range(self.__sourceText.GetNumberOfLines()):
-                if self.__sourceText.GetLineText(i) != "": # skip blank
-                    urls.append(self.__sourceText.GetLineText(i))
+        for i in range(self.__sourceText.GetNumberOfLines()):
+            if self.__sourceText.GetLineText(i) != "": # skip blank
+                urls.append(self.__sourceText.GetLineText(i))
 
-            self.__am = AddManager(self, urls)
-            self.__am.start()
-            self.__sourceText.Clear()
+        self.__am = AddManager(self, urls)
+        self.__am.start()
+        self.__sourceText.Clear()
 
         # event handler for StartButton
     def __onClickStartButton(self, event):
@@ -265,21 +264,17 @@ class MainFrame(wx.Frame):
 
         # event handler for PauseButton
     def __onClickPauseButton(self, event):
-        if self.__dm and self.__dm.isAlive():
-            self.__dm.pause()
-            self.SetStatusText("Paused.")
-
+        self.__dm.pause()
+        self.SetStatusText("Paused.")
         self.__downloading = False
 
         # event handler for SkipButton
     def __onClickSkipButton(self, event):
-        if self.__dm and self.__dm.isAlive():
-            self.__dm.skip()
+        self.__dm.skip()
 
         # event handler for StopButton
     def __onClickStopButton(self, event):
-        if self.__dm and self.__dm.isAlive():
-            self.__dm.stop(self.__addedList.GetFirstSelected())
+        self.__dm.stop(self.__addedList.GetFirstSelected())
 
         # event handler for InfoButton
     def __onClickInfoButton(self, event):
