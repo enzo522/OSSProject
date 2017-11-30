@@ -1,3 +1,5 @@
+# Copied from youtube_dl
+
 from __future__ import unicode_literals
 
 import json

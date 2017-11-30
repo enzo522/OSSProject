@@ -1,9 +1,9 @@
-import logging
 import os
 import re
-import subprocess
 import sys
 import time
+import logging
+import subprocess
 
 if sys.version_info[:2] >= (3, 0):
     # pylint: disable=E0611,F0401,I0011
@@ -19,27 +19,24 @@ else:
 
 early_py_version = sys.version_info[:2] < (2, 7)
 
-import g
-from pafy import call_gdata
-from playlist import get_playlist2
-from util import xenc
+from . import __version__, g
+from .pafy import call_gdata
+from .playlist import get_playlist2
+from .util import xenc
 
 dbg = logging.debug
 
 
-def extract_video_id(orgurl):
+def extract_video_id(url):
     """ Extract the video id from a url, return video id as str. """
     idregx = re.compile(r'[\w-]{11}$')
-    orgurl = str(orgurl).strip()
+    url = str(url).strip()
 
-    if idregx.match(orgurl):
-        return orgurl # ID of video
+    if idregx.match(url):
+        return url # ID of video
 
-    if '://' not in orgurl:
-        url = '//' + orgurl
-    else:
-        url = orgurl
-
+    if '://' not in url:
+        url = '//' + url
     parsedurl = urlparse(url)
     if parsedurl.netloc in ('youtube.com', 'www.youtube.com', 'm.youtube.com', 'gaming.youtube.com'):
         query = parse_qs(parsedurl.query)
@@ -50,9 +47,8 @@ def extract_video_id(orgurl):
         if idregx.match(vidid):
             return vidid
 
-    return orgurl
-    #err = "Need 11 character video id or the URL of the video. Got %s"
-    #raise ValueError(err % url)
+    err = "Need 11 character video id or the URL of the video. Got %s"
+    raise ValueError(err % url)
 
 
 class BasePafy(object):
@@ -62,6 +58,7 @@ class BasePafy(object):
     def __init__(self, video_url, basic=True, gdata=False,
                  size=False, callback=None, ydl_opts=None):
         """ Set initial values. """
+        self.version = __version__
         self.videoid = extract_video_id(video_url)
         self.watchv_url = g.urls['watchv'] % self.videoid
 
@@ -96,8 +93,7 @@ class BasePafy(object):
         self.expiry = None
 
         if basic:
-            if not self._fetch_basic():
-                return
+            self._fetch_basic()
 
         if gdata:
             self._fetch_gdata()
@@ -344,6 +340,7 @@ class BasePafy(object):
     def _getbest(self, preftype="any", ftypestrict=True, vidonly=False):
         """
         Return the highest resolution video available.
+
         Select from video-only streams if vidonly is True
         """
         streams = self.videostreams if vidonly else self.streams
@@ -371,6 +368,7 @@ class BasePafy(object):
     def getbestvideo(self, preftype="any", ftypestrict=True):
         """
         Return the best resolution video-only stream.
+
         set ftypestrict to False to return a non-preferred format if that
         has a higher resolution
         """
@@ -379,6 +377,7 @@ class BasePafy(object):
     def getbest(self, preftype="any", ftypestrict=True):
         """
         Return the highest resolution video+audio stream.
+
         set ftypestrict to False to return a non-preferred format if that
         has a higher resolution
         """
@@ -414,10 +413,6 @@ class BasePafy(object):
         self._viewcount = int(self._viewcount)
         self._description = pl_data.get("description")
 
-    @property
-    def has_basic(self):
-        return self._have_basic
-
 
 class BaseStream(object):
 
@@ -443,7 +438,6 @@ class BaseStream(object):
         self._filename = None
         self._fsize = None
         self._active = False
-        self._progress_stats = None
 
     def generate_filename(self, meta=False, max_length=None):
         """ Generate filename. """
@@ -493,6 +487,7 @@ class BaseStream(object):
     @property
     def quality(self):
         """ Return quality of stream (bitrate or resolution).
+
         eg, 128k or 640x480 (str)
         """
         return self._quality
@@ -505,6 +500,7 @@ class BaseStream(object):
     @property
     def extension(self):
         """ Return appropriate file extension for stream (str).
+
         Possible values are: 3gp, m4a, m4v, mp4, webm, ogg
         """
         return self._extension
@@ -517,6 +513,7 @@ class BaseStream(object):
     @property
     def mediatype(self):
         """ Return mediatype string (normal, audio or video).
+
         (normal means a stream containing both video and audio.)
         """
         return self._mediatype
@@ -572,8 +569,10 @@ class BaseStream(object):
     def download(self, filepath="", quiet=False, callback=None,
                  meta=False, remux_audio=False):
         """ Download.  Use quiet=True to supress output. Return filename.
+
         Use meta=True to append video id and itag to generated filename
         Use remax_audio=True to remux audio file downloads
+
         """
         # pylint: disable=R0912,R0914
         # Too many branches, too many local vars
@@ -589,16 +588,14 @@ class BaseStream(object):
             filename = self.generate_filename(meta=meta, max_length=256-len('.temp'))
 
         filepath = os.path.join(savedir, filename)
-
-        if os.path.exists(filepath): # if the user has already downloaded this video, skip downloading
-            return
-
         temp_filepath = filepath + ".temp"
 
-        status_string = ('[{:.1%}] [{:4.0f} KB/s] [{:.0f} secs]')
+        status_string = ('  {:,} Bytes [{:.2%}] received. Rate: [{:4.0f} '
+                         'KB/s].  ETA: [{:.0f} secs]')
 
         if early_py_version:
-            status_string = ('[{0:.1%}] [{1:4.0f} KB/s] [{2:.0f} secs]')
+            status_string = ('  {0:} Bytes [{1:.2%}] received. Rate:'
+                             ' [{2:4.0f} KB/s].  ETA: [{3:.0f} secs]')
 
         response = g.opener.open(self.url)
         total = int(response.info()['Content-Length'].strip())
@@ -635,19 +632,19 @@ class BaseStream(object):
             else: # Avoid ZeroDivisionError
                 rate = 0
                 eta = 0
-            self._progress_stats = (bytesdone * 1.0 / total, rate, eta)
+            progress_stats = (bytesdone, bytesdone * 1.0 / total, rate, eta)
 
             if not chunk:
                 outfh.close()
                 break
 
             if not quiet:
-                status = status_string.format(*self._progress_stats)
+                status = status_string.format(*progress_stats)
                 sys.stdout.write("\r" + status + ' ' * 4 + "\r")
                 sys.stdout.flush()
 
             if callback:
-                callback(total, *self._progress_stats)
+                callback(total, *progress_stats)
 
         if self._active:
 
@@ -662,13 +659,6 @@ class BaseStream(object):
         else:  # download incomplete, return temp filepath
             outfh.close()
             return temp_filepath
-
-    def has_stats(self):
-        return self._progress_stats is not None
-
-    @property
-    def progress_stats(self):
-        return self._progress_stats if self.has_stats() else (0, 0, 0)
 
 
 def remux(infile, outfile, quiet=False, muxer="ffmpeg"):
