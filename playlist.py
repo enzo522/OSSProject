@@ -1,6 +1,6 @@
-import json
-import re
 import sys
+import re
+import json
 
 if sys.version_info[:2] >= (3, 0):
     # pylint: disable=E0611,F0401,I0011
@@ -8,9 +8,8 @@ if sys.version_info[:2] >= (3, 0):
 else:
     from urlparse import parse_qs, urlparse
 
-import g
-from pafy import new, get_categoryname, call_gdata, fetch_decode
-
+from . import g
+from .pafy import new, get_categoryname, call_gdata, fetch_decode
 
 def extract_playlist_id(playlist_url):
     # Normal playlists start with PL, Mixes start with RD + first video ID,
@@ -20,7 +19,7 @@ def extract_playlist_id(playlist_url):
 
     playlist_id = None
     if idregx.match(playlist_url):
-        playlist_id = playlist_url  # ID of video
+        playlist_id = playlist_url # ID of video
 
     if '://' not in playlist_url:
         playlist_url = '//' + playlist_url
@@ -36,8 +35,10 @@ def extract_playlist_id(playlist_url):
 def get_playlist(playlist_url, basic=False, gdata=False,
                  size=False, callback=None):
     """ Return a dict containing Pafy objects from a YouTube Playlist.
+
     The returned Pafy objects are initialised using the arguments to
     get_playlist() in the manner documented for pafy.new()
+
     """
 
     playlist_id = extract_playlist_id(playlist_url)
@@ -122,7 +123,7 @@ def parseISO8591(duration):
             _, hours, _, minutes, _, seconds = duration[0]
             duration = [seconds, minutes, hours]
             duration = [int(v) if len(v) > 0 else 0 for v in duration]
-            duration = sum([60 ** p * v for p, v in enumerate(duration)])
+            duration = sum([60**p*v for p, v in enumerate(duration)])
         else:
             duration = 30
     else:
@@ -141,7 +142,7 @@ class Playlist(object):
             raise ValueError(err % playlist_url)
 
         query = {'part': 'snippet, contentDetails',
-                 'id': playlist_id}
+                'id': playlist_id}
         allinfo = call_gdata('playlists', query)
 
         pl = allinfo['items'][0]
@@ -150,7 +151,7 @@ class Playlist(object):
         self.title = pl['snippet']['title']
         self.author = pl['snippet']['channelTitle']
         self.description = pl['snippet']['description']
-        self._len = pl['contentDetails']['itemCount']
+        self ._len = pl['contentDetails']['itemCount']
         self._basic = basic
         self._gdata = gdata
         self._size = size
@@ -158,10 +159,10 @@ class Playlist(object):
 
     def __len__(self):
         return self._len
-
+    
     def __iter__(self):
         if self._items is not None:
-            for i in self._items:
+            for  i in self._items:
                 yield i
             return
 
@@ -169,16 +170,16 @@ class Playlist(object):
 
         # playlist items specific metadata
         query = {'part': 'snippet',
-                 'maxResults': 50,
-                 'playlistId': self.plid}
+                'maxResults': 50,
+                'playlistId': self.plid}
 
         while True:
             playlistitems = call_gdata('playlistItems', query)
 
-            query2 = {'part': 'contentDetails,snippet,statistics',
+            query2 = {'part':'contentDetails,snippet,statistics',
                       'maxResults': 50,
                       'id': ','.join(i['snippet']['resourceId']['videoId']
-                                     for i in playlistitems['items'])}
+                          for i in playlistitems['items'])}
             wdata = call_gdata('videos', query2)
 
             for v, vextra in zip(playlistitems['items'], wdata['items']):
@@ -187,7 +188,7 @@ class Playlist(object):
                     title=v['snippet']['title'],
                     author=v['snippet']['channelTitle'],
                     thumbnail=v['snippet'].get('thumbnails', {}
-                                               ).get('default', {}).get('url'),
+                        ).get('default', {}).get('url'),
                     description=v['snippet']['description'],
                     length_seconds=parseISO8591(
                         vextra['contentDetails']['duration']),
@@ -200,8 +201,8 @@ class Playlist(object):
 
                 try:
                     pafy_obj = new(v['snippet']['resourceId']['videoId'],
-                                   basic=self._basic, gdata=self._gdata,
-                                   size=self._size, callback=self._callback)
+                            basic=self._basic, gdata=self._gdata,
+                            size=self._size, callback=self._callback)
 
                 except IOError as e:
                     if self.callback:
@@ -222,10 +223,12 @@ class Playlist(object):
 
 
 def get_playlist2(playlist_url, basic=False, gdata=False,
-                  size=False, callback=None):
+                 size=False, callback=None):
     """ Return a Playlist object from a YouTube Playlist.
+
     The returned Pafy objects are initialised using the arguments to
     get_playlist() in the manner documented for pafy.new()
+
     """
 
     return Playlist(playlist_url, basic, gdata, size, callback)

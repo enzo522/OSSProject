@@ -1,6 +1,6 @@
 import json
-import os
 import sys
+import os
 
 if sys.version_info[:2] >= (3, 0):
     # pylint: disable=E0611,F0401,I0011
@@ -11,7 +11,7 @@ else:
     from urllib2 import HTTPError
     from urllib import urlencode
 
-import g
+from . import g
 
 
 mswin = os.name == "nt"
@@ -47,6 +47,7 @@ def call_gdata(api, qs):
 def utf8_replace(txt):
     """
     Replace unsupported characters in unicode string.
+
     :param txt: text to filter
     :type txt: str
     :returns: Unicode text without any characters unsupported by locale

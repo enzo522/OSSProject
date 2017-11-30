@@ -1,11 +1,11 @@
-import hashlib
-import json
-import logging
 import os
+import hashlib
+import tempfile
+import json
 import re
 import sys
-import tempfile
 import time
+import logging
 from xml.etree import ElementTree
 
 if sys.version_info[:2] >= (3, 0):
@@ -20,10 +20,10 @@ else:
 
 early_py_version = sys.version_info[:2] < (2, 7)
 
-import g
-from pafy import fetch_decode, dbg, get_categoryname
-from backend_shared import BasePafy, BaseStream
-from jsinterp import JSInterpreter
+from . import g
+from .pafy import fetch_decode, dbg, get_categoryname
+from .backend_shared import BasePafy, BaseStream
+from .jsinterp import JSInterpreter
 
 
 funcmap = {}
@@ -384,6 +384,7 @@ def fetch_cached(url, callback, encoding=None, dbg_ref="", file_prefix=""):
 
 def prune_files(path, prefix="", age_max=3600 * 24 * 14, count_max=4):
     """ Remove oldest files from path that start with prefix.
+
     remove files older than age_max, leave maximum of count_max files.
     """
     tempfiles = []
@@ -411,10 +412,13 @@ def prune_files(path, prefix="", age_max=3600 * 24 * 14, count_max=4):
 
 def get_js_sm(watchinfo, callback):
     """ Fetch watchinfo page and extract stream map and js funcs if not known.
+
     This function is needed by videos with encrypted signatures.
     If the js url referred to in the watchv page is not a key in funcmap,
     the javascript is fetched and functions extracted.
+
     Returns streammap (list of dicts), js url (str)  and funcs (dict)
+
     """
     m = re.search(g.jsplayer, watchinfo)
     myjson = json.loads(m.group(1))

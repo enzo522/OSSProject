@@ -1,13 +1,7 @@
-#!/usr/bin/python
-# -*- coding: utf-8 -*-
-import sys
-reload(sys)
-sys.setdefaultencoding("utf-8")
-
 '''모듈 불러오기'''
-import logging
-import sys  # 파이썬 인터프리터 제어
+import sys #파이썬 인터프리터 제어
 import time
+import logging
 
 '''설치된 파이썬의 버전에 따른 인코딩'''
 if sys.version_info[:2] >= (3, 0):
@@ -17,11 +11,10 @@ else:
     uni = unicode
 
 import youtube_dl
-from errormessage import ErrorMsg
 
 '''선언한 모듈(from)에서 필요한 것(import)만 가져온다.'''
-import g
-from backend_shared import BasePafy, BaseStream
+from . import g
+from .backend_shared import BasePafy, BaseStream, remux
 
 dbg = logging.debug #디버깅용 로그
 
@@ -41,15 +34,14 @@ class YtdlPafy(BasePafy):
     def _fetch_basic(self):
         """ 일반적인 데이터와 스트림 불러옴 """
         if self._have_basic:
-            return True
+            return
 
         with youtube_dl.YoutubeDL(self._ydl_opts) as ydl:
             try: #에러가 발생할 가능성이 있는 코드
                 self._ydl_info = ydl.extract_info(self.videoid, download=False)
             # Turn into an IOError since that is what pafy previously raised
             except youtube_dl.utils.DownloadError as e: #에러 종류
-                ErrorMsg(self.videoid + "\n에 해당하는 YouTube 영상이 없습니다.")
-                return False
+                raise IOError(str(e).replace('YouTube said', 'Youtube says')) #에러를 발생시킴
 
         if self.callback:
             self.callback("Fetched video info")
@@ -68,7 +60,6 @@ class YtdlPafy(BasePafy):
         self.expiry = time.time() + g.lifespan
 
         self._have_basic = True
-        return True
 
     def _fetch_gdata(self):
         """ gdata 값을 추출 및 필요할 경우 gdata 불러옴 """
@@ -86,14 +77,16 @@ class YtdlPafy(BasePafy):
     def _process_streams(self):
         """ 내부 스트림 맵으로 부터 스트림 객체 생성 """
 
-        if self._have_basic:
-            allstreams = [YtdlStream(z, self) for z in self._ydl_info['formats']]
-            self._streams = [i for i in allstreams if i.mediatype == 'normal']
-            self._audiostreams = [i for i in allstreams if i.mediatype == 'audio']
-            self._videostreams = [i for i in allstreams if i.mediatype == 'video']
-            self._m4astreams = [i for i in allstreams if i.extension == 'm4a']
-            self._oggstreams = [i for i in allstreams if i.extension == 'ogg']
-            self._allstreams = allstreams
+        if not self._have_basic:
+            self._fetch_basic()
+
+        allstreams = [YtdlStream(z, self) for z in self._ydl_info['formats']]
+        self._streams = [i for i in allstreams if i.mediatype == 'normal']
+        self._audiostreams = [i for i in allstreams if i.mediatype == 'audio']
+        self._videostreams = [i for i in allstreams if i.mediatype == 'video']
+        self._m4astreams = [i for i in allstreams if i.extension == 'm4a']
+        self._oggstreams = [i for i in allstreams if i.extension == 'ogg']
+        self._allstreams = allstreams
 
 '''BaseStream을 상속받는 클래스'''
 class YtdlStream(BaseStream):
