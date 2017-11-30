@@ -15,7 +15,7 @@ class Downloader(threading.Thread):
         self.__item = item
         self.__stream = None
         self.__downloadPath = downloadPath
-        self._lock = threading.Lock()
+        self._lock = threading.RLock()
 
         for s in self.__item.video.allstreams:  # find a stream which satisfies selected options
             if self.__item.selectedExt == s.mediatype + " / " + s.extension + " / " + s.quality:
@@ -30,7 +30,8 @@ class Downloader(threading.Thread):
                 round(stats[1], 1).__str__() + "KB/s"
             eta = round(stats[2], 1).__str__() + "초"
 
-            self.__frame.updateStatus(self.__item, progress, rate, eta)
+            with self._lock:
+                self.__frame.updateStatus(self.__item, progress, rate, eta)
 
     def run(self): # download a video with selected options
         if self.__stream.download(filepath=self.__downloadPath, quiet=True) != 0: # 1: completed/ 0: paused/ -1: stopped

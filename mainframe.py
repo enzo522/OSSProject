@@ -11,6 +11,7 @@ def resource_path(relative_path): # a global method to return relative path
     return os.path.join(os.path.abspath("."), relative_path)
 
 import os
+import threading
 import wx
 from addmanager import AddManager
 from downloadmanager import DownloadManager
@@ -185,6 +186,7 @@ class MainFrame(wx.Frame):
 
         self.__am = None # AddManager for adding urls
         self.__dm = None # DownloadManager for downloading videos
+        self._lock = threading.RLock()
 
         self.Center()
         self.Show()
@@ -193,11 +195,9 @@ class MainFrame(wx.Frame):
     def __onClose(self, event):
         if self.__am and self.__am.isAlive():
             self.__am.stop()
-            self.__am.join()
 
         if self.__dm and self.__dm.isAlive():
             self.__dm.pause()
-            self.__dm.join()
 
         self.Destroy()
 
@@ -302,10 +302,11 @@ class MainFrame(wx.Frame):
 
         removeList.sort(reverse=True) # sort remove list reversely to remove safely by starting from latest index
 
-        for itemTuple in removeList:
-            self.SetStatusText(itemTuple[1].video.title + " has been removed.")
-            self.__downloadList.remove(itemTuple[1])
-            self.__addedList.DeleteItem(itemTuple[0])
+        with self._lock:
+            for itemTuple in removeList:
+                self.SetStatusText(itemTuple[1].video.title + " has been removed.")
+                self.__downloadList.remove(itemTuple[1])
+                self.__addedList.DeleteItem(itemTuple[0])
 
         # event handler for ChangeDirButton
     def __onClickChangeDirButton(self, event):
@@ -349,11 +350,12 @@ class MainFrame(wx.Frame):
             self.__downloadList.append(item)
             num_items = self.__addedList.GetItemCount()
 
-            self.__addedList.InsertItem(num_items, item.video.title)
-            self.__addedList.SetItem(num_items, 1, item.video.author)
-            self.__addedList.SetItem(num_items, 2, item.video.duration)
-            self.__addedList.SetItem(num_items, 3, item.selectedExt)
-            self.__addedList.SetItem(num_items, 4, item.filesize)
+            with self._lock:
+                self.__addedList.InsertItem(num_items, item.video.title)
+                self.__addedList.SetItem(num_items, 1, item.video.author)
+                self.__addedList.SetItem(num_items, 2, item.video.duration)
+                self.__addedList.SetItem(num_items, 3, item.selectedExt)
+                self.__addedList.SetItem(num_items, 4, item.filesize)
 
             self.SetStatusText(item.video.title + " has been added.")
         else:
@@ -361,15 +363,17 @@ class MainFrame(wx.Frame):
 
         # update status of downloading item
     def updateStatus(self, item, rate, progress, eta):
-        selectedItem = self.__downloadList.index(item)
-        self.__addedList.SetItem(selectedItem, 5, rate)
-        self.__addedList.SetItem(selectedItem, 6, progress)
-        self.__addedList.SetItem(selectedItem, 7, eta)
+        with self._lock:
+            selectedItem = self.__downloadList.index(item)
+            self.__addedList.SetItem(selectedItem, 5, rate)
+            self.__addedList.SetItem(selectedItem, 6, progress)
+            self.__addedList.SetItem(selectedItem, 7, eta)
 
         # remove item from list when downloaded
     def removeFinishedItem(self, item):
-        self.__addedList.DeleteItem(self.__downloadList.index(item))
-        self.__downloadList.remove(item)
+        with self._lock:
+            self.__addedList.DeleteItem(self.__downloadList.index(item))
+            self.__downloadList.remove(item)
 
         # set finished when all videos are downloaded
     def setFinished(self):

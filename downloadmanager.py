@@ -16,7 +16,7 @@ class DownloadManager(threading.Thread):
         self.__threadList = []
         self.__isRunning = True
         self.__isSuspending = False
-        self._lock = threading.Lock()
+        self._lock = threading.RLock()
 
         for item in itemList:
             self.__queue.put(item)
@@ -32,12 +32,12 @@ class DownloadManager(threading.Thread):
                         sleep(WAIT_TIME)
 
                 for t in self.__threadList:
-                    if not t.isAlive():
-                        self.__threadList.remove(t)
-                        break
-                    else:  # update download progress
+                    if t.isAlive(): # if video is still being downloaded, update status
                         t.updateStatus()
-                        sleep(WAIT_TIME)
+                    else: # otherwise, remove it from list for next video to be downloaded
+                        self.__threadList.remove(t)
+
+                    sleep(WAIT_TIME)
 
                 if len(self.__threadList) <= 0 and self.__queue.empty():  # when every video is completed
                     with self._lock:
@@ -45,7 +45,7 @@ class DownloadManager(threading.Thread):
 
                     break
 
-    def isDownloading(self, index):
+    def isDownloading(self, index): # return whether selected video is being downloaded or not
         return index < len(self.__threadList) and self.__threadList[index].isAlive()
 
     def pause(self): # pause current downloads
