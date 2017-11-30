@@ -126,7 +126,7 @@ class MainFrame(wx.Frame):
         columnWidths = [ 230, 80, 70, 180, 70, 85, 60, 70, wx.GetDisplaySize().Width ]
 
         for i in range(len(cols)):
-            self.__addedList.InsertColumn(i, cols[i], wx.TEXT_ALIGNMENT_CENTER)
+            self.__addedList.InsertColumn(i, cols[i], wx.TEXT_ALIGNMENT_RIGHT if i == 0 else wx.TEXT_ALIGNMENT_CENTER)
             self.__addedList.SetColumnWidth(i, columnWidths[i])
 
         self.Bind(wx.EVT_LIST_ITEM_SELECTED, self.__onSelectItem, self.__addedList)
@@ -196,7 +196,7 @@ class MainFrame(wx.Frame):
             self.__am.join()
 
         if self.__dm and self.__dm.isAlive():
-            self.__dm.stop()
+            self.__dm.pause()
             self.__dm.join()
 
         self.Destroy()
