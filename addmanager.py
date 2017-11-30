@@ -13,7 +13,7 @@ class AddManager(threading.Thread):
         self.__frame = frame
         self.__urlList = urlList
         self.__isRunning = True
-        self._lock = threading.RLock()
+        self._lock = threading.Lock()
 
     def run(self):
         for url in self.__urlList:

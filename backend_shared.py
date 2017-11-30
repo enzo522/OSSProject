@@ -443,6 +443,7 @@ class BaseStream(object):
         self._filename = None
         self._fsize = None
         self._active = False
+        self._delete = False
         self._progress_stats = None
 
     def generate_filename(self, meta=False, max_length=None):
@@ -563,10 +564,11 @@ class BaseStream(object):
 
         return self._fsize
 
-    def cancel(self):
+    def cancel(self, delete):
         """ Cancel an active download. """
         if self._active:
             self._active = False
+            self._delete = delete
             return True
 
     def download(self, filepath="", quiet=False, callback=None,
@@ -649,7 +651,7 @@ class BaseStream(object):
             if callback:
                 callback(total, *self._progress_stats)
 
-        if self._active:
+        if self._active: # download complete
 
             if remux_audio and self.mediatype == "audio":
                 remux(temp_filepath, filepath, quiet=quiet, muxer=remux_audio)
@@ -657,11 +659,16 @@ class BaseStream(object):
             else:
                 os.rename(temp_filepath, filepath)
 
-            return filepath
+            return 1 # download successfully
 
-        else:  # download incomplete, return temp filepath
+        else:  # download incomplete
             outfh.close()
-            return temp_filepath
+
+            if self._delete:
+                os.remove(temp_filepath)
+                return -1 # stop downloading
+
+            return 0 # pause downloading
 
     def has_stats(self):
         return self._progress_stats is not None

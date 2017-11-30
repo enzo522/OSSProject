@@ -4,7 +4,7 @@ import sys
 reload(sys)
 sys.setdefaultencoding("utf-8")
 
-def resource_path(relative_path):
+def resource_path(relative_path): # a global method to return relative path
     if hasattr(sys, '_MEIPASS'):
         return os.path.join(sys._MEIPASS, relative_path)
 
@@ -134,23 +134,29 @@ class MainFrame(wx.Frame):
         vBox.Add(hBoxes[3], flag=wx.LEFT | wx.RIGHT, border=10)
         vBox.Add((-1, 10))
 
-        # add 5 buttons (start, skip, stop, info, remove)
+        # add 6 buttons (start, pause, skip, stop, info, remove)
         self.__startButton = wx.BitmapButton(panel, -1, wx.Bitmap(resource_path("images/startButtonIcon.png")), style=wx.NO_BORDER)
         self.__startButton.SetBackgroundColour(BACKGROUND_COLOR)
         self.Bind(wx.EVT_BUTTON, self.__onClickStartButton, self.__startButton)
         self.Bind(wx.EVT_UPDATE_UI, self.__onCheckCanStart, self.__startButton)
         hBoxes[4].Add(self.__startButton, flag=wx.RIGHT, border=12)
 
+        self.__pauseButton = wx.BitmapButton(panel, -1, wx.Bitmap(resource_path("images/pauseButtonIcon.png")), style=wx.NO_BORDER)
+        self.__pauseButton.SetBackgroundColour(BACKGROUND_COLOR)
+        self.Bind(wx.EVT_BUTTON, self.__onClickPauseButton, self.__pauseButton)
+        self.Bind(wx.EVT_UPDATE_UI, self.__onCheckCanPause, self.__pauseButton)
+        hBoxes[4].Add(self.__pauseButton, flag=wx.RIGHT, border=12)
+
         self.__skipButton = wx.BitmapButton(panel, -1, wx.Bitmap(resource_path("images/skipButtonIcon.png")), style=wx.NO_BORDER)
         self.__skipButton.SetBackgroundColour(BACKGROUND_COLOR)
         self.Bind(wx.EVT_BUTTON, self.__onClickSkipButton, self.__skipButton)
-        self.Bind(wx.EVT_UPDATE_UI, self.__onCheckCanSkipOrStop, self.__skipButton)
+        self.Bind(wx.EVT_UPDATE_UI, self.__onCheckCanSkip, self.__skipButton)
         hBoxes[4].Add(self.__skipButton, flag=wx.RIGHT, border=12)
 
         self.__stopButton = wx.BitmapButton(panel, -1, wx.Bitmap(resource_path("images/stopButtonIcon.png")), style=wx.NO_BORDER)
         self.__stopButton.SetBackgroundColour(BACKGROUND_COLOR)
         self.Bind(wx.EVT_BUTTON, self.__onClickStopButton, self.__stopButton)
-        self.Bind(wx.EVT_UPDATE_UI, self.__onCheckCanSkipOrStop, self.__stopButton)
+        self.Bind(wx.EVT_UPDATE_UI, self.__onCheckCanStop, self.__stopButton)
         hBoxes[4].Add(self.__stopButton, flag=wx.RIGHT, border=12)
 
         self.__infoButton = wx.BitmapButton(panel, -1, wx.Bitmap(resource_path("images/infoButtonIcon.png")), style=wx.NO_BORDER)
@@ -213,9 +219,19 @@ class MainFrame(wx.Frame):
         event.Enable(not self.__downloading and len(self.__downloadList) > 0 and \
                      self.__am is not None and not self.__am.isAlive())
 
-        # UI updater for SkipButton and StopButton
-    def __onCheckCanSkipOrStop(self, event):
+        # UI updater for PauseButton
+    def __onCheckCanPause(self, event):
         event.Enable(self.__downloading)
+
+        # UI updater for SkipButton
+    def __onCheckCanSkip(self, event):
+        event.Enable(self.__downloading)
+
+        # UI updater for StopButton
+    def __onCheckCanStop(self, event):
+        event.Enable(self.__downloading and self.__addedList.GetSelectedItemCount() == 1 and \
+                     self.__dm is not None and self.__dm.isAlive() and \
+                     self.__dm.isDownloading(self.__addedList.GetFocusedItem()))
 
         # UI updater for InfoButton
     def __onCheckCanShowInfo(self, event):
@@ -247,6 +263,14 @@ class MainFrame(wx.Frame):
         self.__prefCombobox.Clear()
         self.SetStatusText("Downloading...")
 
+        # event handler for PauseButton
+    def __onClickPauseButton(self, event):
+        if self.__dm and self.__dm.isAlive():
+            self.__dm.pause()
+            self.SetStatusText("Paused.")
+
+        self.__downloading = False
+
         # event handler for SkipButton
     def __onClickSkipButton(self, event):
         if self.__dm and self.__dm.isAlive():
@@ -255,9 +279,7 @@ class MainFrame(wx.Frame):
         # event handler for StopButton
     def __onClickStopButton(self, event):
         if self.__dm and self.__dm.isAlive():
-            self.__dm.stop()
-
-        self.__downloading = False
+            self.__dm.stop(self.__addedList.GetFirstSelected())
 
         # event handler for InfoButton
     def __onClickInfoButton(self, event):
@@ -314,7 +336,7 @@ class MainFrame(wx.Frame):
     def __onSelectItem(self, event):
         self.__prefCombobox.Clear()
 
-        if self.__addedList.GetSelectedItemCount() == 1:
+        if not self.__downloading and self.__addedList.GetSelectedItemCount() == 1:
             selectedItem = self.__downloadList[self.__addedList.GetFocusedItem()]
             self.__prefCombobox.AppendItems(selectedItem.options)
             self.__prefCombobox.SetValue(selectedItem.selectedExt)

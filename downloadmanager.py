@@ -15,8 +15,7 @@ class DownloadManager(threading.Thread):
         self.__queue = Queue(len(itemList))  # a queue to download in order
         self.__threadList = []
         self.__isRunning = True
-        self.__abort = False
-        self._lock = threading.RLock()
+        self._lock = threading.Lock()
 
         for item in itemList:
             self.__queue.put(item)
@@ -25,7 +24,7 @@ class DownloadManager(threading.Thread):
         while self.__isRunning:
             if len(self.__threadList) < 3:  # download 3 videos simultaneously
                 if not self.__queue.empty():
-                    dl = Downloader(self.__frame, self.__queue.get(), self.__dir, self.__abort)
+                    dl = Downloader(self.__frame, self.__queue.get(), self.__dir)
                     self.__threadList.append(dl)
                     dl.start()
                     sleep(WAIT_TIME)
@@ -39,17 +38,25 @@ class DownloadManager(threading.Thread):
                     sleep(WAIT_TIME)
 
             if len(self.__threadList) <= 0 and self.__queue.empty():  # when every video is completed
-                self.__isRunning = False
+                with self._lock:
+                    self.__frame.setFinished()
 
-        with self._lock:
-            self.__frame.setFinished()
+                break
+
+    def isDownloading(self, index):
+        return index < len(self.__threadList) and self.__threadList[index].isAlive()
+
+    def pause(self):
+        self.__isRunning = False
+
+        for t in self.__threadList:
+            t.pause()
 
     def skip(self):  # cancel current downloads
         for t in self.__threadList:
-            if t.isAlive():
-                t.stop()
-                t.join(2)
+            t.stop()
+            sleep(WAIT_TIME)
 
-    def stop(self):  # cancel current downloads and abort further ones
-        self.skip()
-        self.__abort = True
+    def stop(self, index):  # cancel current downloads and abort further ones
+        if index < len(self.__threadList):
+            self.__threadList[index].stop()
