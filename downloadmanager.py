@@ -16,7 +16,7 @@ class DownloadManager(threading.Thread):
         self.__threadList = []
         self.__isRunning = True
         self.__isSuspending = False
-        self._lock = threading.RLock()
+        self._lock = threading.Lock()
 
         for item in itemList:
             self.__queue.put(item)

@@ -15,7 +15,7 @@ class Downloader(threading.Thread):
         self.__item = item
         self.__stream = None
         self.__downloadPath = downloadPath
-        self._lock = threading.RLock()
+        self._lock = threading.Lock()
 
         for s in self.__item.video.allstreams:  # find a stream which satisfies selected options
             if self.__item.selectedExt == s.mediatype + " / " + s.extension + " / " + s.quality:

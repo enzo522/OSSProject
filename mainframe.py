@@ -186,7 +186,7 @@ class MainFrame(wx.Frame):
 
         self.__am = None # AddManager for adding urls
         self.__dm = None # DownloadManager for downloading videos
-        self._lock = threading.RLock()
+        self._lock = threading.Lock()
 
         self.Center()
         self.Show()
