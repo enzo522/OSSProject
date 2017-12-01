@@ -58,6 +58,7 @@ class DownloadManager(threading.Thread):
 
     def skip(self):  # cancel current downloads
         self.__isSuspending = True
+        sleep(WAIT_TIME)
 
         for t in self.__threadList:
             t.stop()
@@ -67,6 +68,7 @@ class DownloadManager(threading.Thread):
 
     def stop(self, index):  # cancel selected download and delete it
         self.__isSuspending = True
+        sleep(WAIT_TIME)
 
         if index < len(self.__threadList):
             self.__threadList[index].stop()

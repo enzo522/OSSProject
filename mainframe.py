@@ -193,10 +193,10 @@ class MainFrame(wx.Frame):
 
         # stop all threads before force close
     def __onClose(self, event):
-        if self.__am and self.__am.is_alive():
+        if self.__am and self.__am.isAlive():
             self.__am.stop()
 
-        if self.__dm and self.__dm.is_alive():
+        if self.__dm and self.__dm.isAlive():
             self.__dm.pause()
 
         self.Destroy()
@@ -204,7 +204,7 @@ class MainFrame(wx.Frame):
         # UI updater for AddButton
     def __onCheckCanAdd(self, event):
         event.Enable(not self.__downloading and self.__sourceText.GetValue() != "" and \
-                     (True if self.__am is None else not self.__am.is_alive()))
+                     (True if self.__am is None else not self.__am.isAlive()))
 
         # UI updater for ChangeDirButton
     def __onCheckCanChangeDir(self, event):
@@ -217,7 +217,7 @@ class MainFrame(wx.Frame):
         # UI updater for StartButton
     def __onCheckCanStart(self, event):
         event.Enable(not self.__downloading and len(self.__downloadList) > 0 and \
-                     self.__am is not None and not self.__am.is_alive())
+                     self.__am is not None and not self.__am.isAlive())
 
         # UI updater for PauseButton
     def __onCheckCanPause(self, event):
@@ -230,7 +230,7 @@ class MainFrame(wx.Frame):
         # UI updater for StopButton
     def __onCheckCanStop(self, event):
         event.Enable(self.__downloading and self.__addedList.GetSelectedItemCount() == 1 and \
-                     self.__dm is not None and self.__dm.is_alive() and \
+                     self.__dm is not None and self.__dm.isAlive() and \
                      self.__dm.isDownloading(self.__addedList.GetFocusedItem()))
 
         # UI updater for InfoButton
@@ -240,7 +240,7 @@ class MainFrame(wx.Frame):
         # UI updater for RemoveButton
     def __onCheckCanRemove(self, event):
         event.Enable(not self.__downloading and self.__addedList.GetSelectedItemCount() > 0 and \
-                     self.__am is not None and not self.__am.is_alive())
+                     self.__am is not None and not self.__am.isAlive())
 
         # event handler for AddButton
     def __onClickAddButton(self, event):
