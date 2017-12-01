@@ -9,13 +9,13 @@ import threading
 
 # Downloader class to download a video.
 class Downloader(threading.Thread):
-    def __init__(self, frame, item, downloadPath):
+    def __init__(self, frame, item, downloadPath, lock):
         super(Downloader, self).__init__()
         self.__frame = frame
         self.__item = item
         self.__stream = None
         self.__downloadPath = downloadPath
-        self._lock = threading.Lock()
+        self._lock = lock
 
         for s in self.__item.video.allstreams:  # find a stream which satisfies selected options
             if self.__item.selectedExt == s.mediatype + " / " + s.extension + " / " + s.quality:
@@ -33,7 +33,7 @@ class Downloader(threading.Thread):
             with self._lock:
                 self.__frame.updateStatus(self.__item, progress, rate, eta)
 
-    def run(self): # download a video with selected options
+    def run(self):
         if self.__stream.download(filepath=self.__downloadPath, quiet=True) != 0: # 1: completed/ 0: paused/ -1: stopped
             # if completed or stopped, remove this video from download list
             with self._lock:

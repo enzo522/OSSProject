@@ -8,7 +8,7 @@ WAIT_TIME = 0.2
 
 # DownloadManager class to download selected videos.
 class DownloadManager(threading.Thread):
-    def __init__(self, frame, itemList, dir):
+    def __init__(self, frame, itemList, dir, lock):
         super(DownloadManager, self).__init__()
         self.__frame = frame
         self.__dir = dir
@@ -16,7 +16,7 @@ class DownloadManager(threading.Thread):
         self.__threadList = []
         self.__isRunning = True
         self.__isSuspending = False
-        self._lock = threading.Lock()
+        self._lock = lock
 
         for item in itemList:
             self.__queue.put(item)
@@ -26,13 +26,13 @@ class DownloadManager(threading.Thread):
             if not self.__isSuspending:
                 if len(self.__threadList) < 3:  # download 3 videos simultaneously
                     if not self.__queue.empty():
-                        dl = Downloader(self.__frame, self.__queue.get(), self.__dir)
+                        dl = Downloader(self.__frame, self.__queue.get(), self.__dir, self._lock)
                         self.__threadList.append(dl)
                         dl.start()
                         sleep(WAIT_TIME)
 
                 for t in self.__threadList:
-                    if t.isAlive(): # if video is still being downloaded, update status
+                    if t.is_alive(): # if video is still being downloaded, update status
                         t.updateStatus()
                     else: # otherwise, remove it from list for next video to be downloaded
                         self.__threadList.remove(t)
@@ -46,7 +46,7 @@ class DownloadManager(threading.Thread):
                     break
 
     def isDownloading(self, index): # return whether selected video is being downloaded or not
-        return index < len(self.__threadList) and self.__threadList[index].isAlive()
+        return index < len(self.__threadList) and self.__threadList[index].is_alive()
 
     def pause(self): # pause current downloads
         self.__isSuspending = True
@@ -70,6 +70,5 @@ class DownloadManager(threading.Thread):
 
         if index < len(self.__threadList):
             self.__threadList[index].stop()
-            sleep(WAIT_TIME)
 
         self.__isSuspending = False
