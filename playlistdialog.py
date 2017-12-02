@@ -21,12 +21,13 @@ BACKGROUND_COLOR = "white"
 
 # PlaylistInfoDialog class to show information table which was made by InfoTable object
 class _PlaylistInfoDialog(wx.Dialog):
-    def __init__(self, parent, playlist, x, y):
-        wx.Dialog.__init__(self, parent, -1, "Info")
+    def __init__(self, playlistManager, playlist, x, y):
+        wx.Dialog.__init__(self, None, -1, "Info")
         panel = wx.Panel(self)
         self.SetBackgroundColour(BACKGROUND_COLOR)
         self.Bind(wx.EVT_CLOSE, self.__onClose)
         self.__pl = playlist
+        self.__plm = playlistManager
 
         tagList = [ "I D", "제   목", "저   자", "좋아요", "싫어요", "설   명" ]
         infoList = [ self.__pl['playlist_id'], self.__pl['title'], self.__pl['author'], self.__pl['likes'].__str__(), \
@@ -41,7 +42,7 @@ class _PlaylistInfoDialog(wx.Dialog):
         sizer.Add(InfoTable(self, dataList), flag=wx.ALL, border=10)
 
         autoCheckbox = wx.CheckBox(panel, -1, "자동으로 다운로드 목록에 추가")
-        autoCheckbox.SetValue(self.Parent.getAutoAdd(self.__pl['playlist_id']))
+        autoCheckbox.SetValue(self.__plm.get_playlist_auto_add(self.__pl['playlist_id']))
         self.Bind(wx.EVT_CHECKBOX, self.__onCheckAutoAdd, autoCheckbox)
         sizer.Add(autoCheckbox, flag=wx.LEFT | wx.BOTTOM, border=10)
         panel.SetSizerAndFit(sizer)
@@ -54,7 +55,7 @@ class _PlaylistInfoDialog(wx.Dialog):
         self.Destroy()
 
     def __onCheckAutoAdd(self, event):
-        self.Parent.setAutoAdd(self.__pl['playlist_id'], event.IsChecked())
+        self.__plm.set_playlist_auto_add(self.__pl['playlist_id'], event.IsChecked())
 
     def show(self):
         self.Show()
@@ -120,7 +121,7 @@ class PlaylistDialog(wx.Dialog):
         y = 0
 
         while selectedItem >= 0:
-            _PlaylistInfoDialog(self, self.__pls[selectedItem], x, y).show()
+            _PlaylistInfoDialog(self.__plm, self.__pls[selectedItem], x, y).show()
             selectedItem = self.__plList.GetNextSelected(selectedItem)
             x += 30
             y += 30
@@ -135,13 +136,7 @@ class PlaylistDialog(wx.Dialog):
         self.__frame.addPlaylist(videosInPlaylist)
         self.__onClose(None)
 
-    def setAutoAdd(self, url, setting):
-        self.__plm.set_playlist_auto_add(url, setting)
-
-    def getAutoAdd(self, url):
-        return self.__plm.get_playlist_auto_add(url)
-
-    def autoAdd(self):
+    def autoAddPlaylist(self):
         videosInPlaylist = []
 
         for pl in self.__pls:

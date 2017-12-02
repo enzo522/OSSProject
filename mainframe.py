@@ -202,11 +202,7 @@ class MainFrame(wx.Frame):
 
         self.Center()
         self.Show()
-
-        playlist = PlaylistDialog(self, self.__plm).autoAdd()
-
-        if playlist:
-            self.addPlaylist(playlist)
+        PlaylistDialog(self, self.__plm).autoAddPlaylist()
 
         # stop all threads before force close
     def __onClose(self, event):
