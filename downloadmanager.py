@@ -53,7 +53,7 @@ class DownloadManager(threading.Thread):
         self.__isSuspending = True
 
         for t in self.__threadList:
-            t.pause()
+            t.stop(delete=False)
 
         self.__isRunning = False
 
@@ -62,7 +62,7 @@ class DownloadManager(threading.Thread):
         sleep(WAIT_TIME)
 
         for t in self.__threadList:
-            t.stop()
+            t.stop(delete=True)
 
             if os.name == "posix":
                 t.join()
@@ -74,7 +74,7 @@ class DownloadManager(threading.Thread):
         sleep(WAIT_TIME)
 
         if index < len(self.__threadList):
-            self.__threadList[index].stop()
+            self.__threadList[index].stop(delete=True)
 
             if os.name == "posix":
                 self.__threadList[index].join()

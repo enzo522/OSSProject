@@ -20,7 +20,7 @@ class PlaylistManager:
         ''' Init playlist related things '''
         self.__pl_json = get_playlist_json_util()
         self.__default_playlist_data = {
-            'enabled': True,
+            'autoEnabled': False,
             'interval': 3600,
             'lastTriedAt': 0,
             'lastDownloadedAt': 0
@@ -140,3 +140,12 @@ class PlaylistManager:
 
     def get_playlists_urls(self):
         return self.__playlists.keys()
+
+
+    def set_playlist_auto_add(self, url, setting):
+        if url in self.__playlists.keys():
+            self.__playlists[url]['autoEnabled'] = setting
+            self.__pl_json.write(self.__playlists)
+
+    def get_playlist_auto_add(self, url):
+        return (url in self.__playlists.keys()) and self.__playlists[url]['autoEnabled']

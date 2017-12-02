@@ -80,12 +80,10 @@ class MainFrame(wx.Frame):
         dirBox.Add(self.__changeDirButton, flag=wx.ALIGN_CENTER_VERTICAL | wx.RIGHT, border=8)
 
         defaultDir = ""
-        self.__autoAddPlaylist = False
         # set default download directory
         if os.path.exists(CONFIGS): # if the user has already set default directory, read it
             conf = JsonUtil(CONFIGS).read()
             defaultDir = conf['dir']
-            self.__autoAddPlaylist = conf['auto']
 
             if not os.path.exists(defaultDir): # if saved default directory is corrupt, remove it and let user reset it
                 os.remove(CONFIGS)
@@ -103,7 +101,7 @@ class MainFrame(wx.Frame):
                     if not defaultDir.endswith("/"):
                         defaultDir += "/"
 
-                conf = { 'dir': defaultDir, 'auto':self.__autoAddPlaylist }
+                conf = { 'dir': defaultDir }
                 JsonUtil(CONFIGS).write(conf)
             else: # if the user click cancel, program should be exited
                 self.Destroy()
@@ -129,7 +127,7 @@ class MainFrame(wx.Frame):
         # optionGridSizer includes attributes which place on the center
         optionGridSizer = wx.GridSizer(cols=3)
         optionGridSizer.Add(dirBox, 0, wx.ALIGN_LEFT)
-        optionGridSizer.Add(wx.StaticText(panel, size=(wx.GetDisplaySize().Width, -1)), 0, wx.EXPAND)
+        optionGridSizer.Add(wx.StaticText(panel, size=(wx.GetDisplaySize().Width, -1)), 0, wx.EXPAND | wx.ALIGN_CENTER)
         optionGridSizer.Add(optBox, 0, wx.ALIGN_RIGHT)
         hBoxes[2].Add(optionGridSizer, flag=wx.EXPAND)
         vBox.Add(hBoxes[2], flag=wx.LEFT | wx.RIGHT | wx.BOTTOM, border=10)
@@ -205,11 +203,10 @@ class MainFrame(wx.Frame):
         self.Center()
         self.Show()
 
-        if self.__autoAddPlaylist:
-            playlist = PlaylistDialog(self, self.__plm).onClickStartButton(None)
+        playlist = PlaylistDialog(self, self.__plm).autoAdd()
 
-            if playlist:
-                self.addPlaylist(playlist)
+        if playlist:
+            self.addPlaylist(playlist)
 
         # stop all threads before force close
     def __onClose(self, event):
@@ -356,7 +353,8 @@ class MainFrame(wx.Frame):
                 self.__dirText.SetValue(defaultDir + "/" \
                                         if not defaultDir.endswith("/") else defaultDir)
 
-            conf = { 'dir': self.__dirText.GetValue(), 'auto': self.__autoAddPlaylist }
+            conf = JsonUtil(CONFIGS).read()
+            conf['dir'] = self.__dirText.GetValue()
             JsonUtil(CONFIGS).write(conf)
 
         dialog.Destroy()
