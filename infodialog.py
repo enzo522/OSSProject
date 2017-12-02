@@ -43,7 +43,7 @@ class VideoInfoDialog(wx.Dialog):
         sizer = wx.BoxSizer(wx.VERTICAL)
         dataList = []
 
-        for i in range(8):
+        for i in range(len(tagList)):
             dataList.append((tagList[i], infoList[i]))
 
         sizer.Add(InfoTable(self, dataList), flag=wx.ALL, border=10)

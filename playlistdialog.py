@@ -29,14 +29,14 @@ class _PlaylistInfoDialog(wx.Dialog):
         self.__pl = playlist
         self.__plm = playlistManager
 
-        tagList = [ "I D", "제   목", "저   자", "좋아요", "싫어요", "설   명" ]
+        tagList = [ "I D", "제   목", "저   자", "좋아요", "싫어요", "영상수", "설   명" ]
         infoList = [ self.__pl['playlist_id'], self.__pl['title'], self.__pl['author'], self.__pl['likes'].__str__(), \
-                     self.__pl['dislikes'].__str__(), self.__pl['description'] ]
+                     self.__pl['dislikes'].__str__(), len(self.__pl['items']).__str__(), self.__pl['description'] ]
 
         sizer = wx.BoxSizer(wx.VERTICAL)
         dataList = []
 
-        for i in range(6):
+        for i in range(len(tagList)):
             dataList.append((tagList[i], infoList[i]))
 
         sizer.Add(InfoTable(self, dataList), flag=wx.ALL, border=10)
