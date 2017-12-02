@@ -4,6 +4,7 @@ import sys
 reload(sys)
 sys.setdefaultencoding("utf-8")
 
+
 def resource_path(relative_path): # a global method to return relative path
     if hasattr(sys, '_MEIPASS'):
         return os.path.join(sys._MEIPASS, relative_path)
@@ -15,12 +16,14 @@ import threading
 import wx
 from addmanager import AddManager
 from downloadmanager import DownloadManager
-from info import VideoInfoDialog
+from infodialog import VideoInfoDialog
+from playlist_manager import PlaylistManager
+from playlistdialog import PlaylistDialog
 
 FRAME_WIDTH = 870
 FRAME_HEIGHT = 480
 BACKGROUND_COLOR = "white"
-DEFAULT_DIR = "default.dir"
+CONFIGS = "settings.conf"
 
 
 # MainFrame class to handle UI
@@ -45,11 +48,20 @@ class MainFrame(wx.Frame):
         self.Bind(wx.EVT_BUTTON, self.__onClickAddButton, self.__addButton)
         self.Bind(wx.EVT_UPDATE_UI, self.__onCheckCanAdd, self.__addButton)
 
+        self.__playlistButton = wx.BitmapButton(panel, -1, wx.Bitmap(resource_path("images/playlistButtonIcon.png")), style=wx.NO_BORDER)
+        self.__playlistButton.SetBackgroundColour(BACKGROUND_COLOR)
+        self.Bind(wx.EVT_BUTTON, self.__onClickPlaylistButton, self.__playlistButton)
+        self.Bind(wx.EVT_UPDATE_UI, self.__onCheckCanAddPlaylist, self.__playlistButton)
+
+        addBox = wx.BoxSizer(wx.HORIZONTAL)
+        addBox.Add(self.__addButton, flag=wx.ALIGN_CENTER_VERTICAL | wx.RIGHT, border=8)
+        addBox.Add(self.__playlistButton, flag=wx.ALIGN_CENTER_VERTICAL)
+
         # labelGridSizer includes attributes that place on the top
         labelGridSizer = wx.GridSizer(cols=3)
         labelGridSizer.Add(sourceLabel, 0, wx.ALIGN_LEFT)
-        labelGridSizer.Add(wx.StaticText(panel, size=(wx.GetDisplaySize().Width, -1)), 0, wx.EXPAND)
-        labelGridSizer.Add(self.__addButton, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        labelGridSizer.Add(wx.StaticText(panel, size=(wx.GetDisplaySize().Width, -1)), 0, wx.EXPAND | wx.ALIGN_CENTER)
+        labelGridSizer.Add(addBox, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         hBoxes[0].Add(labelGridSizer, flag=wx.EXPAND)
         vBox.Add(hBoxes[0], flag=wx.ALL, border=10)
 
@@ -67,14 +79,14 @@ class MainFrame(wx.Frame):
         dirBox.Add(self.__changeDirButton, flag=wx.ALIGN_CENTER_VERTICAL | wx.RIGHT, border=8)
 
         defaultDir = ""
+        self.__autoAddPlaylist = 0
         # set default download directory
-        if os.path.exists(DEFAULT_DIR): # if the user has already set default directory, read it
-            dirFile = open(DEFAULT_DIR, "r")
-            defaultDir = dirFile.readline()
-            dirFile.close()
+        if os.path.exists(CONFIGS): # if the user has already set default directory, read it
+            with open(CONFIGS, "r") as configFile:
+                defaultDir, self.__autoAddPlaylist = configFile.readline().split("|")
 
             if not os.path.exists(defaultDir): # if saved default directory is corrupt, remove it and let user reset it
-                os.remove(DEFAULT_DIR)
+                os.remove(CONFIGS)
                 os.execl(sys.executable, sys.executable, *sys.argv) # restart this program
         else: # otherwise, make the user set default directory
             dialog = wx.DirDialog(None)
@@ -89,9 +101,9 @@ class MainFrame(wx.Frame):
                     if not defaultDir.endswith("/"):
                         defaultDir += "/"
 
-                dirFile = open(DEFAULT_DIR, "w")
-                dirFile.write(defaultDir)
-                dirFile.close()
+                with open(CONFIGS, "w") as configFile:
+                    configFile.write(defaultDir + "|")
+                    configFile.write(self.__autoAddPlaylist.__str__())
             else: # if the user click cancel, program should be exited
                 self.Destroy()
 
@@ -183,6 +195,7 @@ class MainFrame(wx.Frame):
 
         self.__downloadList = []
         self.__downloading = False
+        self.__plm = PlaylistManager()
 
         self.__am = None # AddManager for adding urls
         self.__dm = None # DownloadManager for downloading videos
@@ -190,6 +203,10 @@ class MainFrame(wx.Frame):
 
         self.Center()
         self.Show()
+
+        if self.__autoAddPlaylist == 1:
+            playlist = PlaylistDialog(self, self.__plm).onClickStartButton(None)
+            wx.CallAfter(self.addPlaylist, playlist)
 
         # stop all threads before force close
     def __onClose(self, event):
@@ -205,6 +222,10 @@ class MainFrame(wx.Frame):
     def __onCheckCanAdd(self, event):
         event.Enable(not self.__downloading and self.__sourceText.GetValue() != "" and \
                      (True if self.__am is None else not self.__am.isAlive()))
+
+        # UI updater for PlaylistButton
+    def __onCheckCanAddPlaylist(self, event):
+        pass # PlaylistButton can always be clickable
 
         # UI updater for ChangeDirButton
     def __onCheckCanChangeDir(self, event):
@@ -253,6 +274,10 @@ class MainFrame(wx.Frame):
         self.__am = AddManager(self, urls, self._lock)
         self.__am.start()
         self.__sourceText.Clear()
+
+        # event handler for PlaylistButton
+    def __onClickPlaylistButton(self, event):
+        PlaylistDialog(self, self.__plm).show(-1, -1)
 
         # event handler for StartButton
     def __onClickStartButton(self, event):
@@ -321,9 +346,8 @@ class MainFrame(wx.Frame):
                 self.__dirText.SetValue(defaultDir + "/" \
                                         if not defaultDir.endswith("/") else defaultDir)
 
-            dirFile = open(DEFAULT_DIR, "w")
-            dirFile.write(self.__dirText.GetValue())
-            dirFile.close()
+            with open(CONFIGS, "w") as configFile:
+                configFile.write(self.__dirText.GetValue())
 
         dialog.Destroy()
 
@@ -343,7 +367,7 @@ class MainFrame(wx.Frame):
         self.__addedList.SetItem(selectedItem, 3, self.__downloadList[selectedItem].selectedExt)
         self.__addedList.SetItem(selectedItem, 4, self.__downloadList[selectedItem].filesize)
 
-        # add item to list
+        # add item to download list
     def addToDownloadList(self, item): # if video is already in download list, skip it
         if item.video.title not in [ d.video.title for d in self.__downloadList ]:
             self.__downloadList.append(item)
@@ -358,6 +382,11 @@ class MainFrame(wx.Frame):
             self.SetStatusText(item.video.title + " has been added.")
         else:
             self.SetStatusText(item.video.title + " is already in download list.")
+
+        # add playlist to download list
+    def addPlaylist(self, playlist):
+        self.__am = AddManager(self, playlist, self._lock)
+        self.__am.start()
 
         # update status of downloading item
     def updateStatus(self, item, rate, progress, eta):
@@ -375,3 +404,7 @@ class MainFrame(wx.Frame):
     def setFinished(self):
         self.SetStatusText("Finished")
         self.__downloading = False
+
+        # check it's possible to add playlist
+    def isAddable(self):
+        return not self.__downloading and (True if self.__am is None else not self.__am.isAlive())

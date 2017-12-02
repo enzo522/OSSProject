@@ -114,7 +114,7 @@ class PlaylistManager:
         try:
             print('load playlist from the file')
             self.__playlists = self.__pl_json.read()
-        except FileNotFoundError:
+        except:
             print('playlist file does not exist or is corrupted')
             self.__pl_json.write(self.__playlists)
         print(self.__playlists)
@@ -124,7 +124,7 @@ class PlaylistManager:
         try:
             print('load playlist downloads from the file')
             self.__downloads = self.__pld_json.read()
-        except FileNotFoundError:
+        except:
             print('playlist download file does not exist or is corrupted')
             self.__pld_json.write(self.__downloads)
         print(self.__downloads)
@@ -137,3 +137,6 @@ class PlaylistManager:
             return url
         else:
             return m.group(1)
+
+    def get_playlists_urls(self):
+        return self.__playlists.keys()

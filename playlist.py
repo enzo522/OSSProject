@@ -43,8 +43,7 @@ def get_playlist(playlist_url, basic=False, gdata=False,
     playlist_id = extract_playlist_id(playlist_url)
 
     if not playlist_id:
-        err = "Unrecognized playlist url: %s"
-        raise ValueError(err % playlist_url)
+        return None
 
     url = g.urls["playlist"] % playlist_id
 

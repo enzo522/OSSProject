@@ -46,7 +46,7 @@ class DownloadManager(threading.Thread):
                     break
 
     def isDownloading(self, index): # return whether selected video is being downloaded or not
-        return index < len(self.__threadList) and self.__threadList[index].is_alive()
+        return index < len(self.__threadList) and self.__threadList[index].isAlive()
 
     def pause(self): # pause current downloads
         self.__isSuspending = True

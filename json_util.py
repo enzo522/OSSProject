@@ -30,7 +30,7 @@ class JsonUtil:
 
 class PlaylistJsonUtil(JsonUtil):
     def __init__(self, filename="playlists.json"):
-        super(PlaylistJsonUtil, self).__init__(filename)
+        JsonUtil.__init__(self, filename)
 
     def test(self):
         print('PlaylistJsonUtil')
@@ -39,7 +39,7 @@ class PlaylistJsonUtil(JsonUtil):
 
 class PlaylistDownloadJsonUtil(JsonUtil):
     def __init__(self, filename="playlist_downloads.json"):
-        super(PlaylistDownloadJsonUtil, self).__init__(filename)
+        JsonUtil.__init__(self, filename)
 
     def test(self):
         print('PlaylistDownloadJsonUtil')

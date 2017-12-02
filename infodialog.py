@@ -7,18 +7,20 @@ sys.setdefaultencoding("utf-8")
 import wx.grid
 from wx.grid import GridCellAutoWrapStringRenderer
 
+BACKGROUND_COLOR = "white"
+
 
 # InfoTable class to set information of selected video.
-class _InfoTable(wx.grid.Grid):
+class InfoTable(wx.grid.Grid):
     def __init__(self, parent, dataList):
         wx.grid.Grid.__init__(self, parent, -1)
 
-        self.CreateGrid(8, 1)
+        self.CreateGrid(len(dataList), 1)
         self.SetColLabelSize(1)
-        self.SetLabelBackgroundColour("white")
+        self.SetLabelBackgroundColour(BACKGROUND_COLOR)
         self.EnableEditing(False)
 
-        for i in range(8):
+        for i in range(len(dataList)):
             self.SetRowLabelValue(i, dataList[i][0])
             self.SetCellValue(i, 0, dataList[i][1])
             self.SetCellRenderer(i, 0, GridCellAutoWrapStringRenderer())
@@ -31,7 +33,7 @@ class VideoInfoDialog(wx.Dialog):
     def __init__(self, video, x, y):
         wx.Dialog.__init__(self, None, -1, "Info")
         panel = wx.Panel(self)
-        self.SetBackgroundColour("white")
+        self.SetBackgroundColour(BACKGROUND_COLOR)
         self.Bind(wx.EVT_CLOSE, self.__onClose)
 
         tagList = [ "제   목", "저   자", "길   이", "평   점", "조회수", "좋아요", "싫어요", "설   명" ]
@@ -42,10 +44,9 @@ class VideoInfoDialog(wx.Dialog):
         dataList = []
 
         for i in range(8):
-            data = (tagList[i], infoList[i])
-            dataList.append(data)
+            dataList.append((tagList[i], infoList[i]))
 
-        sizer.Add(_InfoTable(self, dataList), flag=wx.ALL, border=10)
+        sizer.Add(InfoTable(self, dataList), flag=wx.ALL, border=10)
         panel.SetSizerAndFit(sizer)
         self.Fit()
 
