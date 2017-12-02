@@ -215,11 +215,15 @@ class MainFrame(wx.Frame):
     def __onClose(self, event):
         if self.__am and self.__am.isAlive():
             self.__am.stop()
-            self.__am.join()
+
+            if os.name == "posix":
+                self.__am.join()
 
         if self.__dm and self.__dm.isAlive():
             self.__dm.pause()
-            self.__dm.join()
+
+            if os.name == "posix":
+                self.__dm.join()
 
         self.Destroy()
 

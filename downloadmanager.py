@@ -1,3 +1,4 @@
+import os
 import threading
 from Queue import Queue
 from time import sleep
@@ -62,7 +63,9 @@ class DownloadManager(threading.Thread):
 
         for t in self.__threadList:
             t.stop()
-            t.join()
+
+            if os.name == "posix":
+                t.join()
 
         self.__isSuspending = False
 
@@ -72,6 +75,8 @@ class DownloadManager(threading.Thread):
 
         if index < len(self.__threadList):
             self.__threadList[index].stop()
-            self.__threadList[index].join()
+
+            if os.name == "posix":
+                self.__threadList[index].join()
 
         self.__isSuspending = False
