@@ -78,7 +78,7 @@ class PlaylistDialog(wx.Dialog):
         event.Enable(self.__plList.GetSelectedItemCount() > 0)
 
     def __onClickAddButton(self, event):
-        dialog = wx.TextEntryDialog(self, "Playlist URL", "Add to List")
+        dialog = wx.TextEntryDialog(self, "Playlist URL", "Subscribe")
 
         if dialog.ShowModal() == wx.ID_OK:
             pl = get_playlist(dialog.GetValue())
@@ -131,7 +131,7 @@ class PlaylistDialog(wx.Dialog):
         self.Bind(wx.EVT_CLOSE, self.__onClose)
 
         sizer = wx.BoxSizer(wx.VERTICAL)
-        self.__plList = wx.ListCtrl(panel, size=(300, 400), style=wx.LC_REPORT | wx.BORDER_DOUBLE)
+        self.__plList = wx.ListCtrl(panel, size=(300, 390), style=wx.LC_REPORT | wx.BORDER_DOUBLE)
         self.__plList.InsertColumn(0, "플레이리스트", wx.TEXT_ALIGNMENT_CENTER)
         self.__plList.SetColumnWidth(0, 300)
 
@@ -170,6 +170,6 @@ class PlaylistDialog(wx.Dialog):
         self.Fit()
 
         if x > 0 and y > 0:
-            self.Move(self.GetPosition().__iadd__((x, y)))
+            self.Move((x, y))
 
         self.Show()

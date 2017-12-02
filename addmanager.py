@@ -14,15 +14,17 @@ class AddManager(threading.Thread):
 
     def run(self):
         for url in self.__urlList:
-            if self.__isRunning:
-                video = pafy.new(url)
+            if not self.__isRunning:
+                break
 
-                if video.has_basic:  # check current url is available
-                    default = video.getbest()  # default selected options are the best ones that current video has
+            video = pafy.new(url)
 
-                    with self._lock:
-                        self.__frame.addToDownloadList(Item(video, default.mediatype + " / " + default.extension + \
-                                                            " / " + default.resolution))
+            if video.has_basic:  # check current url is available
+                default = video.getbest()  # default selected options are the best ones that current video has
+
+                with self._lock:
+                    self.__frame.addToDownloadList(Item(video, default.mediatype + " / " + default.extension + \
+                                                        " / " + default.resolution))
 
     def stop(self):
         self.__isRunning = False

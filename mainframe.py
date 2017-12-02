@@ -19,11 +19,12 @@ from downloadmanager import DownloadManager
 from infodialog import VideoInfoDialog
 from playlist_manager import PlaylistManager
 from playlistdialog import PlaylistDialog
+from json_util import JsonUtil
 
 FRAME_WIDTH = 870
 FRAME_HEIGHT = 480
 BACKGROUND_COLOR = "white"
-CONFIGS = "settings.conf"
+CONFIGS = "settings.json"
 
 
 # MainFrame class to handle UI
@@ -79,11 +80,12 @@ class MainFrame(wx.Frame):
         dirBox.Add(self.__changeDirButton, flag=wx.ALIGN_CENTER_VERTICAL | wx.RIGHT, border=8)
 
         defaultDir = ""
-        self.__autoAddPlaylist = 0
+        self.__autoAddPlaylist = False
         # set default download directory
         if os.path.exists(CONFIGS): # if the user has already set default directory, read it
-            with open(CONFIGS, "r") as configFile:
-                defaultDir, self.__autoAddPlaylist = configFile.readline().split("|")
+            conf = JsonUtil(CONFIGS).read()
+            defaultDir = conf['dir']
+            self.__autoAddPlaylist = conf['auto']
 
             if not os.path.exists(defaultDir): # if saved default directory is corrupt, remove it and let user reset it
                 os.remove(CONFIGS)
@@ -101,9 +103,8 @@ class MainFrame(wx.Frame):
                     if not defaultDir.endswith("/"):
                         defaultDir += "/"
 
-                with open(CONFIGS, "w") as configFile:
-                    configFile.write(defaultDir + "|")
-                    configFile.write(self.__autoAddPlaylist.__str__())
+                conf = { 'dir': defaultDir, 'auto':self.__autoAddPlaylist }
+                JsonUtil(CONFIGS).write(conf)
             else: # if the user click cancel, program should be exited
                 self.Destroy()
 
@@ -204,17 +205,21 @@ class MainFrame(wx.Frame):
         self.Center()
         self.Show()
 
-        if self.__autoAddPlaylist == 1:
+        if self.__autoAddPlaylist:
             playlist = PlaylistDialog(self, self.__plm).onClickStartButton(None)
-            wx.CallAfter(self.addPlaylist, playlist)
+
+            if playlist:
+                self.addPlaylist(playlist)
 
         # stop all threads before force close
     def __onClose(self, event):
         if self.__am and self.__am.isAlive():
             self.__am.stop()
+            self.__am.join()
 
         if self.__dm and self.__dm.isAlive():
             self.__dm.pause()
+            self.__dm.join()
 
         self.Destroy()
 
@@ -277,7 +282,8 @@ class MainFrame(wx.Frame):
 
         # event handler for PlaylistButton
     def __onClickPlaylistButton(self, event):
-        PlaylistDialog(self, self.__plm).show(-1, -1)
+        PlaylistDialog(self, self.__plm).show(self.GetPosition().x + self.GetSize().Width, \
+                                              self.GetPosition().y)
 
         # event handler for StartButton
     def __onClickStartButton(self, event):
@@ -346,8 +352,8 @@ class MainFrame(wx.Frame):
                 self.__dirText.SetValue(defaultDir + "/" \
                                         if not defaultDir.endswith("/") else defaultDir)
 
-            with open(CONFIGS, "w") as configFile:
-                configFile.write(self.__dirText.GetValue())
+            conf = { 'dir': self.__dirText.GetValue(), 'auto': self.__autoAddPlaylist }
+            JsonUtil(CONFIGS).write(conf)
 
         dialog.Destroy()
 
@@ -378,7 +384,6 @@ class MainFrame(wx.Frame):
             self.__addedList.SetItem(num_items, 2, item.video.duration)
             self.__addedList.SetItem(num_items, 3, item.selectedExt)
             self.__addedList.SetItem(num_items, 4, item.filesize)
-
             self.SetStatusText(item.video.title + " has been added.")
         else:
             self.SetStatusText(item.video.title + " is already in download list.")

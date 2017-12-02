@@ -62,7 +62,7 @@ class DownloadManager(threading.Thread):
 
         for t in self.__threadList:
             t.stop()
-            sleep(WAIT_TIME)
+            t.join()
 
         self.__isSuspending = False
 
@@ -72,5 +72,6 @@ class DownloadManager(threading.Thread):
 
         if index < len(self.__threadList):
             self.__threadList[index].stop()
+            self.__threadList[index].join()
 
         self.__isSuspending = False
