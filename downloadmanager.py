@@ -9,9 +9,10 @@ WAIT_TIME = 0.2
 
 # DownloadManager class to download selected videos.
 class DownloadManager(threading.Thread):
-    def __init__(self, frame, itemList, dir, lock):
+    def __init__(self, frame, playlistManger, itemList, dir, lock):
         super(DownloadManager, self).__init__()
         self.__frame = frame
+        self.__plm = playlistManger
         self.__dir = dir
         self.__queue = Queue(len(itemList))  # a queue to download in order
         self.__threadList = []
@@ -27,7 +28,7 @@ class DownloadManager(threading.Thread):
             if not self.__isSuspending:
                 if len(self.__threadList) < 3:  # download 3 videos simultaneously
                     if not self.__queue.empty():
-                        dl = Downloader(self.__frame, self.__queue.get(), self.__dir, self._lock)
+                        dl = Downloader(self.__frame, self.__plm, self.__queue.get(), self.__dir, self._lock)
                         self.__threadList.append(dl)
                         dl.start()
                         sleep(WAIT_TIME)

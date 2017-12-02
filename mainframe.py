@@ -273,7 +273,7 @@ class MainFrame(wx.Frame):
             if self.__sourceText.GetLineText(i) != "": # skip blank
                 urls.append(self.__sourceText.GetLineText(i))
 
-        self.__am = AddManager(self, urls, self._lock)
+        self.__am = AddManager(self, self.__plm, urls, self._lock)
         self.__am.start()
         self.__sourceText.Clear()
 
@@ -284,7 +284,7 @@ class MainFrame(wx.Frame):
 
         # event handler for StartButton
     def __onClickStartButton(self, event):
-        self.__dm = DownloadManager(self, self.__downloadList, self.__dirText.GetValue(), self._lock)
+        self.__dm = DownloadManager(self, self.__plm, self.__downloadList, self.__dirText.GetValue(), self._lock)
         self.__dm.start()
         self.__downloading = True
         self.__prefCombobox.Clear()
@@ -388,7 +388,7 @@ class MainFrame(wx.Frame):
 
         # add playlist to download list
     def addPlaylist(self, playlist):
-        self.__am = AddManager(self, playlist, self._lock)
+        self.__am = AddManager(self, self.__plm, playlist, self._lock)
         self.__am.start()
 
         # update status of downloading item

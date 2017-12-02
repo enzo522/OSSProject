@@ -2,6 +2,7 @@
 import copy
 import re
 import os
+import datetime
 
 from playlist import get_playlist
 from json_util import get_playlist_json_util, get_playlist_download_json_util
@@ -141,6 +142,14 @@ class PlaylistManager:
     def get_playlists_urls(self):
         return self.__playlists.keys()
 
+    def get_downloads_urls(self):
+        return self.__downloads.keys()
+
+    def add_downloads(self, url):
+        now = datetime.datetime.now()
+        self.__downloads[url] = "%s-%s-%s %s:%s:%s" % (now.year, now.month, now.day, \
+                                                        now.hour, now.minute, now.second)
+        self.__pld_json.write(self.__downloads)
 
     def set_playlist_auto_add(self, url, setting):
         if url in self.__playlists.keys():
