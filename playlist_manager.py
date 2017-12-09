@@ -42,14 +42,12 @@ class PlaylistManager:
     def subscribe(self, url):
         """ Subscribe using playlist url """
         pl_code = self.__parse_playlist_id(url)
-        print('subscribe "' + pl_code + '"')
         self.__playlists[pl_code] = copy.deepcopy(self.__default_playlist_data)
         self.__pl_json.write(self.__playlists)
 
     def unsubscribe(self, url):
         """ Unsubscribe using playlist url """
         pl_code = self.__parse_playlist_id(url)
-        print('unsubscribe "' + pl_code + '"')
         try:
             del self.__playlists[pl_code]
         except KeyError:
@@ -61,6 +59,7 @@ class PlaylistManager:
 
         print('start downloading')
 
+        ''' reload config files '''
         ''' reload config files '''
         self.__load_config_files()
 
@@ -113,22 +112,16 @@ class PlaylistManager:
     def __load_playlist_file(self):
         """ Load playlists from json file """
         try:
-            print('load playlist from the file')
             self.__playlists = self.__pl_json.read()
         except:
-            print('playlist file does not exist or is corrupted')
             self.__pl_json.write(self.__playlists)
-        print(self.__playlists)
 
     def __load_playlist_downloads_file(self):
         """ Load playlist download history from json file """
         try:
-            print('load playlist downloads from the file')
             self.__downloads = self.__pld_json.read()
         except:
-            print('playlist download file does not exist or is corrupted')
             self.__pld_json.write(self.__downloads)
-        print(self.__downloads)
 
     @staticmethod
     def __parse_playlist_id(url):

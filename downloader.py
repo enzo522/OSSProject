@@ -10,7 +10,7 @@ import threading
 # Downloader class to download a video.
 class Downloader(threading.Thread):
     def __init__(self, frame, playlistManager, item, downloadPath, lock):
-        super(Downloader, self).__init__()
+        super(Downloader, self).__init__(target=self.__download)
         self.__frame = frame
         self.__plm = playlistManager
         self.__item = item
@@ -34,7 +34,7 @@ class Downloader(threading.Thread):
             with self._lock:
                 self.__frame.updateStatus(self.__item, progress, rate, eta)
 
-    def run(self):
+    def __download(self):
         flag = self.__stream.download(filepath=self.__downloadPath, quiet=True) # 1: completed/ 0: paused/ -1: stopped
 
         if flag == 1: # only if successfully downloaded, video is added to downloaded list

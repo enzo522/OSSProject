@@ -6,14 +6,14 @@ from item import Item
 # AddManager class to add urls to download list.
 class AddManager(threading.Thread):
     def __init__(self, frame, playlistManager, urlList, lock):
-        super(AddManager, self).__init__()
+        super(AddManager, self).__init__(target=self.__analyze)
         self.__frame = frame
         self.__plm = playlistManager
         self.__urlList = urlList
         self.__isRunning = True
         self._lock = lock
 
-    def run(self):
+    def __analyze(self):
         for url in self.__urlList:
             if not self.__isRunning:
                 break
