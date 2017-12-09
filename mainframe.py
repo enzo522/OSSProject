@@ -208,11 +208,9 @@ class MainFrame(wx.Frame):
     def __onClose(self, event):
         if self.__am and self.__am.is_alive():
             self.__am.stop()
-            self.__am.join()
 
         if self.__dm and self.__dm.is_alive():
             self.__dm.pause()
-            self.__dm.join()
 
         self.Destroy()
 
